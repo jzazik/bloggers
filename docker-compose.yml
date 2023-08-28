@@ -1,0 +1,42 @@
+version: '3.5'
+
+services:
+  laravel-app-bloggers:
+    build:
+      context: '.'
+      args:
+        uid: 1000
+    container_name: laravel-app-bloggers
+    ports:
+      - "80:80"
+      - "6001:6001"
+    environment:
+      - APACHE_RUN_USER=#1000
+      - APACHE_RUN_GROUP=#1000
+    volumes:
+      - .:/var/www/html:cached
+    networks:
+      backend:
+        aliases:
+          - app-bloggers
+
+  mysql-db:
+    platform: linux/x86_64
+    image: mysql:5.7
+    container_name: mysql-db-bloggers
+    volumes:
+      - ./run/var:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=securerootpassword
+      - MYSQL_DATABASE=${DB_DATABASE}
+      - MYSQL_USER=homestead
+      - MYSQL_PASSWORD=secret
+    networks:
+      backend:
+        aliases:
+          - mysql-db-bloggers
+networks:
+  backend:
+    name: backend-network
