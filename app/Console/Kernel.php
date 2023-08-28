@@ -12,7 +12,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-         $schedule->command('app:update-from-google-spreadsheet')->everyMinute();
+         $schedule->command('app:update-from-google-spreadsheet')->hourly();
     }
 
     /**

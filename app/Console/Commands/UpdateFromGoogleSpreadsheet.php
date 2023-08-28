@@ -45,9 +45,5 @@ class UpdateFromGoogleSpreadsheet extends Command
             
             
         }
-        dump($values); exit;
-        
-        $sheet->range('AC2')->update([['1']]);
-//    dump($data[0]); exit;
     }
 }
