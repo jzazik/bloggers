@@ -35,7 +35,7 @@ class UpdateFromGoogleSpreadsheet extends Command
         $values = Sheets::collection(header: $header, rows: $rows);
         
         foreach ($values as $key => $value) {
-            if ($value['exported'] === 2) continue;
+            if ($value['exported'] === '2') continue;
             
             $updateCell = 'AC' . $key + 1;
             $sheet->range($updateCell)->update([['2']]);
