@@ -38,7 +38,9 @@ class UpdateFromGoogleSpreadsheet extends Command
             if ($value['exported']) continue;
             
             $updateCell = 'AC' . $key + 1;
-            $sheet->range($updateCell)->update([['1']]);
+            $sheet->range($updateCell)->update([['2']]);
+            
+            exit;
             
             
             
