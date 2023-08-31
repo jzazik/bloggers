@@ -97,9 +97,6 @@ class UpdateFromGoogleSpreadsheet extends Command
 
             $countNew++;
 
-            Log::info('New: ' . $countNew);
-
-
             $this->info('Row '. $key);
             
             $crmHistory = DB::table('crm_history')
