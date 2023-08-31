@@ -83,6 +83,13 @@ class UpdateFromGoogleSpreadsheet extends Command
      */
     public function handle()
     {
+        $res = [];
+        foreach (DB::table('crm_history')->get() as $history) {
+            $key = $history->email . $history->paymentid . $history->products ;
+            $res[$key][] = $history->sent;
+        };
+
+        
         $sheet = Sheets::spreadsheet(env('SPREADSHEET_ID'))->sheet('Лист1');
 
         $rows = $sheet->get();
@@ -103,7 +110,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                 ->where('email', $value['Email'])
                 ->where('paymentid', $value['paymentid'])
                 ->where('products', $value['products'])
-                ->where('sent', Carbon::parse($value['sent'])->toDateTimeString());
+                ->where('sent', $value['sent'] ? Carbon::parse($value['sent'])->toDateTimeString() : null);
             
             if ($crmHistory->exists()) continue;
             
