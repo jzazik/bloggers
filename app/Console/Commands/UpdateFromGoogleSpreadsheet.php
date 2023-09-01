@@ -45,21 +45,22 @@ class UpdateFromGoogleSpreadsheet extends Command
     
     private static function getProductType($products): string
     {
-        if (mb_strpos(mb_strtolower($products), 'коррекция')) {
-            return 'Коррекция';
+        if (mb_strpos(mb_strtolower($products), 'архив')) {
+            return 'Архив';
         }
-        
+
         if (mb_strpos(mb_strtolower($products), 'силовой')) {
             return 'Силовой';
+        }
+        
+        if (mb_strpos(mb_strtolower($products), 'коррекция')) {
+            return 'Коррекция';
         }
         
         if (mb_strpos(mb_strtolower($products), 'введение')) {
             return 'Введение';
         }
         
-        if (mb_strpos(mb_strtolower($products), 'архив')) {
-            return 'Архив';
-        }
         
         return 'Другое';
         
