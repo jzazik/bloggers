@@ -45,19 +45,19 @@ class UpdateFromGoogleSpreadsheet extends Command
     
     private static function getProductType($products): string
     {
-        if (mb_strpos(mb_strtolower($products), 'архив')) {
+        if (mb_strpos(mb_strtolower($products), 'архив') !== false) {
             return 'Архив';
         }
 
-        if (mb_strpos(mb_strtolower($products), 'силовой')) {
+        if (mb_strpos(mb_strtolower($products), 'силовой') !== false) {
             return 'Силовой';
         }
         
-        if (mb_strpos(mb_strtolower($products), 'коррекция')) {
+        if (mb_strpos(mb_strtolower($products), 'коррекция') !== false) {
             return 'Коррекция';
         }
         
-        if (mb_strpos(mb_strtolower($products), 'введение')) {
+        if (mb_strpos(mb_strtolower($products), 'введение') !== false) {
             return 'Введение';
         }
         
@@ -68,15 +68,15 @@ class UpdateFromGoogleSpreadsheet extends Command
 
     private static function getProductLength($products): string
     {
-        if (mb_strpos(mb_strtolower($products), '12')) {
+        if (mb_strpos(mb_strtolower($products), '12') !== false) {
             return '12';
         }
 
-        if (mb_strpos(mb_strtolower($products), '6')) {
+        if (mb_strpos(mb_strtolower($products), '6') !== false) {
             return '6';
         }
 
-        if (mb_strpos(mb_strtolower($products), '3')) {
+        if (mb_strpos(mb_strtolower($products), '3') !== false) {
             return '3';
         }
         
@@ -89,6 +89,7 @@ class UpdateFromGoogleSpreadsheet extends Command
      */
     public function handle()
     {
+        dump(self::getProductType('Архив максимальный')); exit;
         $sheet = Sheets::spreadsheet(env('SPREADSHEET_ID'))->sheet('Лист1');
 
         $rows = $sheet->get();
