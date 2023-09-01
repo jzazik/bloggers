@@ -56,6 +56,11 @@ class UpdateFromGoogleSpreadsheet extends Command
         if (mb_strpos(mb_strtolower($products), 'введение')) {
             return 'Введение';
         }
+        
+        if (mb_strpos(mb_strtolower($products), 'архив')) {
+            return 'Архив';
+        }
+        
         return 'Другое';
         
     }
@@ -83,13 +88,6 @@ class UpdateFromGoogleSpreadsheet extends Command
      */
     public function handle()
     {
-        $res = [];
-        foreach (DB::table('crm_history')->get() as $history) {
-            $key = $history->email . $history->paymentid . $history->products ;
-            $res[$key][] = $history->sent;
-        };
-
-        
         $sheet = Sheets::spreadsheet(env('SPREADSHEET_ID'))->sheet('Лист1');
 
         $rows = $sheet->get();
