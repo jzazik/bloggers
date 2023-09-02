@@ -89,7 +89,6 @@ class UpdateFromGoogleSpreadsheet extends Command
      */
     public function handle()
     {
-        dump(self::getProductType('Архив максимальный')); exit;
         $sheet = Sheets::spreadsheet(env('SPREADSHEET_ID'))->sheet('Лист1');
 
         $rows = $sheet->get();
