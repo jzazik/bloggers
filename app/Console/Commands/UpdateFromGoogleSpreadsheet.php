@@ -65,6 +65,28 @@ class UpdateFromGoogleSpreadsheet extends Command
         return 'Другое';
         
     }
+    
+    
+    private static function getProductName($products): string
+    {
+        $separator = mb_strpos($products, '/') !== false ? '/' : '-';
+        
+        return trim(explode($separator, $products)[0]);
+    }
+    
+    
+    private static function getSaleNumber($products): string
+    {
+        if (mb_strpos($products, '/') === false) {
+            return 'без потока';
+        }
+        
+        $afterSlash = explode('/', $products)[1];
+        
+        return trim(explode('-', $afterSlash)[0]);
+    }
+    
+    
 
     private static function getProductLength($products): string
     {
@@ -156,7 +178,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                     'phone' => self::processPhone($value['Phone']),
                 ]);
 
-            $productName = trim(explode('-', $value['products'])[0]);
+            $productName = self::getProductName($value['products']);
             
             $product = Product::updateOrCreate([
                 'product_name' => $productName,
@@ -176,9 +198,12 @@ class UpdateFromGoogleSpreadsheet extends Command
             if ($utm) {
                $utmParam = UtmParam::updateOrCreate($utm);
             }
+            
+            $saleNumber = self::getSaleNumber($value['products']);
 
             Transaction::create([
                 'form_id' => $value['formid'],
+                'sale_number' => $saleNumber,
                 'form_name' => $value['Form name'],
                 'order_id' => $value['orderid'],
                 'payment_system' => $value['paymentsystem'],
