@@ -3,6 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Models\Customer;
+use App\Models\Follower;
+use App\Models\MarketingChannel;
+use App\Models\MarketingMetric;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\UtmParam;
@@ -86,7 +89,6 @@ class UpdateFromGoogleSpreadsheet extends Command
         return trim(explode('-', $afterSlash)[0]);
     }
     
-    
 
     private static function getProductLength($products): string
     {
@@ -105,36 +107,46 @@ class UpdateFromGoogleSpreadsheet extends Command
         return '1';
 
     }
+    
+    private static function strToInt($str): int
+    {
+        return (int)preg_replace('/\D/', '', $str);
+    }
+    
+    private static function strToFloat($str): float
+    {
+        return (float)str_replace(',', '.', $str);
+    }
 
     /**
      * Execute the console command.
      */
-    public function handle()
+    private function updateCRM()
     {
-        $sheet = Sheets::spreadsheet(env('SPREADSHEET_ID'))->sheet('Лист1');
+        $sheet = Sheets::spreadsheet(env('CRM_SPREADSHEET_ID'))->sheet('Лист1');
 
         $rows = $sheet->get();
         $header = $rows->pull(0);
         $values = Sheets::collection(header: $header, rows: $rows);
-        
+
         $crmHistoriesCount = DB::table('crm_history')->count();
-        
+
         $countNew = 0;
         foreach ($values as $key => $value) {
             if ($key < $crmHistoriesCount) continue;
 
             $countNew++;
 
-            $this->info('Row '. $key);
-            
+            $this->info('CRM Row ' . $key);
+
             $crmHistory = DB::table('crm_history')
                 ->where('email', $value['Email'])
                 ->where('paymentid', $value['paymentid'])
                 ->where('products', $value['products'])
                 ->where('sent', $value['sent'] ? Carbon::parse($value['sent'])->toDateTimeString() : null);
-            
+
             if ($crmHistory->exists()) continue;
-            
+
             DB::table('crm_history')->insert([
                 'email' => $value['Email'],
                 'paymentid' => $value['paymentid'],
@@ -166,27 +178,27 @@ class UpdateFromGoogleSpreadsheet extends Command
                 'ma_email' => $value['ma_email'],
                 'add_time' => now(),
             ]);
-            
+
             if ((float)$value['price'] < 100) continue;
 
             $customer = Customer::updateOrCreate(
                 [
                     'email' => strtolower($value['Email'])
-                ], 
+                ],
                 [
-                    'customer_name' => $value['Name'], 
+                    'customer_name' => $value['Name'],
                     'phone' => self::processPhone($value['Phone']),
                 ]);
 
             $productName = self::getProductName($value['products']);
-            
+
             $product = Product::updateOrCreate([
                 'product_name' => $productName,
                 'product_type' => self::getProductType($value['products']),
                 'product_length' => self::getProductLength($productName),
                 'product_price' => trim(explode('=', $value['products'])[1]),
             ]);
-            
+
             $utm = array_filter([
                 'utm_source' => $value['utm_source'],
                 'utm_medium' => $value['utm_medium'],
@@ -194,11 +206,11 @@ class UpdateFromGoogleSpreadsheet extends Command
                 'utm_term' => $value['utm_term'],
                 'utm_content' => $value['utm_content'],
             ]);
-            
+
             if ($utm) {
-               $utmParam = UtmParam::updateOrCreate($utm);
+                $utmParam = UtmParam::updateOrCreate($utm);
             }
-            
+
             $saleNumber = self::getSaleNumber($value['products']);
 
             Transaction::create([
@@ -216,19 +228,138 @@ class UpdateFromGoogleSpreadsheet extends Command
                 'payment_status' => $value['Payment status'],
                 'referer' => $value['referer'],
                 'transaction_date' => Carbon::parse($value['sent'])->toDateTimeString(),
-                
+
                 'customer_id' => $customer->customer_id,
                 'product_id' => $product->product_id,
                 'utm_id' => isset($utmParam) ? $utmParam->utm_id : null,
             ]);
             
+        }
+
+        Log::info('CRM New: ' . $countNew);
+    }
+    
+    private function updateMarketing()
+    {
+        $sheet = Sheets::spreadsheet(env('MARKETING_SPREADSHEET_ID'))->sheet('Реклама');
+        $rows = $sheet->get()->slice(2)->values();
+        $header = $rows->pull(0);
+        
+        $values = Sheets::collection(header: $header, rows: $rows);
+        
+        $marketingHistoriesCount = DB::table('marketing_history')->count();
+        $countNew = 0;
+        foreach ($values as $key => $value) {
+            if ($key < $marketingHistoriesCount) continue;
             
-//            if ($value['exported'] === '2') continue;
-//            $updateCell = 'AC' . $key + 1;
-//            $sheet->range($updateCell)->update([['2']]);
+            $this->info('Marketing Row ' . $key);
+            
+            $actualDate = $value['actual_date'] ? Carbon::parse($value['actual_date'])->toDateString() : null;
+            $channel = $value['channel'];
+            
+
+            $marketingHistory = DB::table('marketing_history')
+                ->where('actual_date', $actualDate)
+                ->where('channel', $channel);
+
+            if ($marketingHistory->exists()) continue;
+
+            $countNew++;
+
+            DB::transaction(function () use ($value, $actualDate, $channel) {
+                
+                $impressions = $this->strToInt($value['impressions']);
+                $visits = $this->strToInt($value['visits']);
+                $ctr = $this->strToFloat($value['ctr']);
+                $cpc = $this->strToFloat($value['cpc']);
+                $cr1 = $this->strToFloat($value['cr1']);
+                $leads = $this->strToInt($value['leads']);
+                $cpl = $this->strToFloat($value[' cpl']);
+                $cr2 = $this->strToFloat($value['cr2']);
+                $qual_leads = $this->strToInt($value['qual_leads']);
+                $cpql = $this->strToFloat($value[' cpql']);
+
+                DB::table('marketing_history')->insert([
+                    'actual_date' => $actualDate,
+                    'channel' => $channel,
+                    'impressions' => $impressions,
+                    'visits' => $visits,
+                    'ctr' => $ctr,
+                    'cpc' => $cpc,
+                    'cr1' => $cr1,
+                    'leads' => $leads,
+                    'cpl' => $cpl,
+                    'cr2' => $cr2,
+                    'qual_leads' => $qual_leads,
+                    'cpql' => $cpql,
+                    'add_time' => now(),
+                ]);
+
+                $channel = MarketingChannel::updateOrCreate(
+                    [
+                        'channel_name' => $channel
+                    ],
+                );
+
+                MarketingMetric::updateOrCreate([
+                    'channel_id' => $channel->channel_id,
+                    'actual_date' => $actualDate,
+                ], [
+                    'impressions' => $impressions,
+                    'visits' => $visits,
+                    'ctr' => $ctr / 100,
+                    'cpc' => $cpc,
+                    'cr1' => $cr1 / 100,
+                    'leads' => $leads,
+                    'cpl' => $cpl,
+                    'cr2' => $cr2 / 100,
+                    'qual_leads' => $qual_leads,
+                    'cpql' => $cpql,
+                ]);
+                
+            });
             
         }
         
-        Log::info('New: ' . $countNew);
+        Log::info('Marketing New: ' . $countNew);
+    }
+    
+    public function updateFollowers()
+    {
+        $sheet = Sheets::spreadsheet(env('MARKETING_SPREADSHEET_ID'))->sheet('Подписная база');
+        $rows = $sheet->get()->slice(2)->values();
+        $header = $rows->pull(0);
+
+        $values = Sheets::collection(header: $header, rows: $rows);
+
+        foreach ($values as $key => $value) {
+            
+            $this->info('Followers Row ' . $key);
+            
+
+            Follower::updateOrCreate([
+                'actual_date' => $value['actual_date'] ? Carbon::parse($value['actual_date'])->toDateString() : null,
+            ], [
+                'add_time' => now(),
+                'email' => $value['email'] ?: 0,
+                'tg_bot' => $value['tg_bot'] ?: 0,
+                'tg_channel' => $value['tg_channel'] ?: 0,
+                'inst' => $value['inst'] ?: 0,
+                'inst_er' => round($this->strToFloat($value['inst_er']) * $value['inst'] / 100),
+                'vk' => $value['vk'] ?: 0,
+                'dzen' => $value['dzen'] ?: 0,
+                'app' => $value['app'] ?: 0,
+            ]);
+
+        }
+        
+    }    
+    
+    
+    public function handle()
+    {
+        $this->updateMarketing();
+        $this->updateFollowers();
+        $this->updateCRM();
     }
 }
