@@ -311,12 +311,12 @@ class UpdateFromGoogleSpreadsheet extends Command
                 ], [
                     'impressions' => $impressions,
                     'visits' => $visits,
-                    'ctr' => $ctr / 100,
+                    'ctr' => $ctr === null ? null : $ctr / 100,
                     'cpc' => $cpc,
-                    'cr1' => $cr1 / 100,
+                    'cr1' => $cr1 === null ? null : $cr1 / 100,
                     'leads' => $leads,
                     'cpl' => $cpl,
-                    'cr2' => $cr2 / 100,
+                    'cr2' => $cr2 === null ? null : $cr2 / 100,
                     'qual_leads' => $qual_leads,
                     'cpql' => $cpql,
                 ]);
