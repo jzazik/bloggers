@@ -316,7 +316,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                     'cr1' => $cr1 === null ? null : $cr1 / 100,
                     'leads' => $leads,
                     'cpl' => $cpl,
-                    'cr2' => $cr2 === null ? null : $cr2 / 100,
+                    'cr2' => null,
                     'qual_leads' => $qual_leads,
                     'cpql' => $cpql,
                 ]);
