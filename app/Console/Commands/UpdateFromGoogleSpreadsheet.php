@@ -108,13 +108,17 @@ class UpdateFromGoogleSpreadsheet extends Command
 
     }
     
-    private static function strToInt($str): int
+    private static function strToInt($str): ?int
     {
+        if ($str === '') return null;
+        
         return (int)preg_replace('/\D/', '', $str);
     }
     
-    private static function strToFloat($str): float
+    private static function strToFloat($str): ?float
     {
+        if ($str === '') return null;
+
         return (float)str_replace(',', '.', $str);
     }
 
@@ -156,10 +160,10 @@ class UpdateFromGoogleSpreadsheet extends Command
                 'phone' => $value['Phone'],
                 'paymentsystem' => $value['paymentsystem'],
                 'orderid' => $value['orderid'],
-                'price' => (float)$value['price'],
+                'price' => $this->strToFloat($value['price']),
                 'promocode' => $value['promocode'],
-                'discount' => (float)$value['discount'],
-                'subtotal' => (float)$value['subtotal'],
+                'discount' => $this->strToFloat($value['discount']),
+                'subtotal' => $this->strToFloat($value['subtotal']),
                 'cookies' => $value['cookies'],
                 'currency' => $value['Currency'],
                 'payment_status' => $value['Payment status'],
@@ -341,14 +345,14 @@ class UpdateFromGoogleSpreadsheet extends Command
                 'actual_date' => $value['actual_date'] ? Carbon::parse($value['actual_date'])->toDateString() : null,
             ], [
                 'add_time' => now(),
-                'email' => $value['email'] ?: 0,
-                'tg_bot' => $value['tg_bot'] ?: 0,
-                'tg_channel' => $value['tg_channel'] ?: 0,
-                'inst' => $value['inst'] ?: 0,
-                'inst_er' => round($this->strToFloat($value['inst_er']) * $value['inst'] / 100),
-                'vk' => $value['vk'] ?: 0,
-                'dzen' => $value['dzen'] ?: 0,
-                'app' => $value['app'] ?: 0,
+                'email' => $value['email'] === '' ? null : $value['email'],
+                'tg_bot' => $value['tg_bot'] === '' ? null : $value['tg_bot'],
+                'tg_channel' => $value['tg_channel'] === '' ? null : $value['tg_channel'],
+                'inst' => $value['inst'] === '' ? null : $value['inst'],
+                'inst_er' => round($this->strToFloat($value['inst_er']) * ($value['inst'] ?: 0) / 100),
+                'vk' => $value['vk'] === '' ? null : $value['vk'],
+                'dzen' => $value['dzen'] === '' ? null : $value['dzen'],
+                'app' => $value['app'] === '' ? null : $value['app'],
             ]);
 
         }
