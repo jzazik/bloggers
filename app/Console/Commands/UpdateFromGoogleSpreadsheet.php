@@ -48,10 +48,7 @@ class UpdateFromGoogleSpreadsheet extends Command
     
     private static function getProductType($products): string
     {
-        if (mb_strpos(mb_strtolower($products), 'архив') !== false) {
-            return 'Архив';
-        }
-
+    
         if (mb_strpos(mb_strtolower($products), 'силовой') !== false) {
             return 'Силовой';
         }
