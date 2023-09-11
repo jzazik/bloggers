@@ -135,9 +135,7 @@ class UpdateFromGoogleSpreadsheet extends Command
         $countNew = 0;
         foreach ($values as $key => $value) {
             if ($key < $crmHistoriesCount) continue;
-
-            $countNew++;
-
+            
             $this->info('CRM Row ' . $key);
 
             $crmHistory = DB::table('crm_history')
@@ -147,6 +145,8 @@ class UpdateFromGoogleSpreadsheet extends Command
                 ->where('sent', $value['sent'] ? Carbon::parse($value['sent'])->toDateTimeString() : null);
 
             if ($crmHistory->exists()) continue;
+
+            $countNew++;
 
             DB::table('crm_history')->insert([
                 'email' => $value['Email'],
