@@ -342,14 +342,14 @@ class UpdateFromGoogleSpreadsheet extends Command
                 'actual_date' => $value['actual_date'] ? Carbon::parse($value['actual_date'])->toDateString() : null,
             ], [
                 'add_time' => now(),
-                'email' => $value['email'] === '' ? null : $value['email'],
-                'tg_bot' => $value['tg_bot'] === '' ? null : $value['tg_bot'],
-                'tg_channel' => $value['tg_channel'] === '' ? null : $value['tg_channel'],
-                'inst' => $value['inst'] === '' ? null : $value['inst'],
-                'inst_er' => round($this->strToFloat($value['inst_er']) * ($value['inst'] ?: 0) / 100),
-                'vk' => $value['vk'] === '' ? null : $value['vk'],
-                'dzen' => $value['dzen'] === '' ? null : $value['dzen'],
-                'app' => $value['app'] === '' ? null : $value['app'],
+                'email' => $value['email'] === '' ? null : $this->strToInt($value['email']),
+                'tg_bot' => $value['tg_bot'] === '' ? null : $this->strToInt($value['tg_bot']),
+                'tg_channel' => $value['tg_channel'] === '' ? null : $this->strToInt($value['tg_channel']),
+                'inst' => $value['inst'] === '' ? null : $this->strToInt($value['inst']),
+                'inst_er' => round(($this->strToInt($value['inst_er']) ?: 0) * ($this->strToInt($value['inst']) ?: 0) / 100),
+                'vk' => $value['vk'] === '' ? null : $this->strToInt($value['vk']),
+                'dzen' => $value['dzen'] === '' ? null : $this->strToInt($value['dzen']),
+                'app' => $value['app'] === '' ? null : $this->strToInt($value['app']),
             ]);
 
         }
