@@ -78,12 +78,12 @@ class UpdateFromGoogleSpreadsheet extends Command
     private static function getSaleNumber($products): string
     {
         if (mb_strpos($products, '/') === false) {
-            return 'без потока';
+            return 0;
         }
         
         $afterSlash = explode('/', $products)[1];
         
-        return trim(explode('-', $afterSlash)[0]);
+        return (int)trim(explode('-', $afterSlash)[0]);
     }
     
 
