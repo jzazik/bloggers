@@ -180,7 +180,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                 'add_time' => now(),
             ]);
 
-            if ((float)$value['price'] < 100) continue;
+            if ((float)$value['price'] < 100 || mb_strpos(mb_strtolower($value['products']), 'доплата') !== false) continue;
 
             $customer = Customer::updateOrCreate(
                 [
