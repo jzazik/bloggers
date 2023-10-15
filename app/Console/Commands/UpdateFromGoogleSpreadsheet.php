@@ -140,7 +140,7 @@ class UpdateFromGoogleSpreadsheet extends Command
 
             $crmHistory = DB::table('crm_history')
                 ->where('email', $value['Email'])
-                ->where('price', $value['price'])
+                ->where('price', 'LIKE', $value['price'])
                 ->where('sent', $value['sent'] ? Carbon::parse($value['sent'])->toDateTimeString() : null);
 
             if ($crmHistory->exists()) continue;
