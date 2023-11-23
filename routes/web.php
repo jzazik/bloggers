@@ -16,10 +16,5 @@ use Revolution\Google\Sheets\Facades\Sheets;
 */
 
 Route::get('/', function () {
-
-    $sheet = Sheets::spreadsheet(env('SPREADSHEET_ID'))->sheet('Лист1');
-//    $data = $sheet->all();
-    
-    $sheet->range('AC2')->update([['1']]);
-//    dump($data[0]); exit;
+    return view('welcome');
 });
