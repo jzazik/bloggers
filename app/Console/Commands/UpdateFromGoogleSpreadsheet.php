@@ -270,28 +270,32 @@ class UpdateFromGoogleSpreadsheet extends Command
                 
                 $impressions = $this->strToInt($value['impressions']);
                 $visits = $this->strToInt($value['visits']);
+                $costs = $this->strToInt($value['costs']);
+                $bounces = $this->strToInt($value['bounces']);
+                $conversions = $this->strToInt($value['conversions']);
                 $ctr = $this->strToFloat($value['ctr']);
                 $cpc = $this->strToFloat($value['cpc']);
                 $cr1 = $this->strToFloat($value['cr1']);
-                $leads = $this->strToInt($value['leads']);
-                $cpl = $this->strToFloat($value[' cpl']);
+                $conversion_cost = $this->strToFloat($value['conversion_cost']);
+                $new_followers = $this->strToInt($value['new_followers']);
                 $cr2 = $this->strToFloat($value['cr2']);
-                $qual_leads = $this->strToInt($value['qual_leads']);
-                $cpql = $this->strToFloat($value[' cpql']);
+                $new_follower_cost = $this->strToFloat($value['new_follower_cost']);
 
                 DB::table('marketing_history')->insert([
                     'actual_date' => $actualDate,
                     'channel' => $channel,
                     'impressions' => $impressions,
-                    'visits' => $visits,
                     'ctr' => $ctr,
+                    'clicks' => $visits,
+                    'costs' => $costs,
+                    'bounces' => $bounces,
+                    'conversions' => $conversions,
+                    'conversion_cost' => $conversion_cost,
+                    'new_followers' => $new_followers,
+                    'new_follower_cost' => $new_follower_cost,
+                    'cr2' => $cr2,
                     'cpc' => $cpc,
                     'cr1' => $cr1,
-                    'leads' => $leads,
-                    'cpl' => $cpl,
-                    'cr2' => $cr2,
-                    'qual_leads' => $qual_leads,
-                    'cpql' => $cpql,
                     'add_time' => now(),
                 ]);
 
@@ -306,15 +310,17 @@ class UpdateFromGoogleSpreadsheet extends Command
                     'actual_date' => $actualDate,
                 ], [
                     'impressions' => $impressions,
-                    'visits' => $visits,
-                    'ctr' => $ctr === null ? null : $ctr / 100,
+                    'clicks' => $visits,
+                    'ctr' => $ctr,
+                    'costs' => $costs,
+                    'bounces' => $bounces,
                     'cpc' => $cpc,
-                    'cr1' => $cr1 === null ? null : $cr1 / 100,
-                    'leads' => $leads,
-                    'cpl' => $cpl,
-                    'cr2' => $cr2 === null ? null : $cr2 / 100,
-                    'qual_leads' => $qual_leads,
-                    'cpql' => $cpql,
+                    'conversions' => $conversions,
+                    'cr1' => $cr1,
+                    'conversion_cost' => $conversion_cost,
+                    'new_followers' => $new_followers,
+                    'cr2' => $cr2,
+                    'new_follower_cost' => $new_follower_cost,
                 ]);
                 
             });
@@ -345,10 +351,11 @@ class UpdateFromGoogleSpreadsheet extends Command
                 'tg_bot' => $value['tg_bot'] === '' ? null : $this->strToInt($value['tg_bot']),
                 'tg_channel' => $value['tg_channel'] === '' ? null : $this->strToInt($value['tg_channel']),
                 'inst' => $value['inst'] === '' ? null : $this->strToInt($value['inst']),
-                'inst_er' => round(($this->strToFloat($value['inst_er']) ?: 0) * ($this->strToInt($value['inst']) ?: 0) / 100),
+                'inst_er' => $value['inst_er'] === '' ? null : $this->strToFloat($value['inst_er']),
                 'vk' => $value['vk'] === '' ? null : $this->strToInt($value['vk']),
                 'dzen' => $value['dzen'] === '' ? null : $this->strToInt($value['dzen']),
                 'app' => $value['app'] === '' ? null : $this->strToInt($value['app']),
+                'advert_tg_bot' => $value['advert_tg_bot'] === '' ? null : $this->strToInt($value['advert_tg_bot']),
             ]);
 
         }
