@@ -269,7 +269,7 @@ class UpdateFromGoogleSpreadsheet extends Command
             DB::transaction(function () use ($value, $actualDate, $channel) {
                 
                 $impressions = $this->strToInt($value['impressions']);
-                $visits = $this->strToInt($value['visits']);
+                $visits = $this->strToInt($value['clicks']);
                 $costs = $this->strToInt($value['costs']);
                 $bounces = $this->strToInt($value['bounces']);
                 $conversions = $this->strToInt($value['conversions']);
