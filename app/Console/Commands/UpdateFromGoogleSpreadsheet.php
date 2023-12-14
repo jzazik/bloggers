@@ -8,6 +8,7 @@ use App\Models\MarketingChannel;
 use App\Models\MarketingMetric;
 use App\Models\Product;
 use App\Models\Transaction;
+use App\Models\UpdateLog;
 use App\Models\UtmParam;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -365,8 +366,43 @@ class UpdateFromGoogleSpreadsheet extends Command
     
     public function handle()
     {
+        $updateLog = UpdateLog::create([
+            'started_at' => Carbon::now(),
+            'next_start_at' => Carbon::now()->addHour()
+        ]);
+        
+        $customersCount = DB::table('customers')->count();
+        $transactionsCount = DB::table('transactions')->count();
+        $productsCount = DB::table('products')->count();
+        $utmParamsCount = DB::table('utm_params')->count();
+        $followersCount = DB::table('followers')->count();
+        $marketingMetricsCount = DB::table('marketing_metrics')->count();
+        $marketingChannelsCount = DB::table('marketing_channels')->count();
+        
+        
         $this->updateMarketing();
         $this->updateFollowers();
         $this->updateCRM();
+
+
+        $customersCountNew = DB::table('customers')->count();
+        $transactionsCountNew = DB::table('transactions')->count();
+        $productsCountNew = DB::table('products')->count();
+        $utmParamsCountNew = DB::table('utm_params')->count();
+        $followersCountNew = DB::table('followers')->count();
+        $marketingMetricsCountNew = DB::table('marketing_metrics')->count();
+        $marketingChannelsCountNew = DB::table('marketing_channels')->count();
+        
+
+        $updateLog->update([
+            'finished_at' => Carbon::now(),
+            'transactions_new_rows' => $transactionsCountNew - $transactionsCount,
+            'customers_new_rows' => $customersCountNew - $customersCount,
+            'products_new_rows' => $productsCountNew - $productsCount,
+            'utm_params_new_rows' => $utmParamsCountNew - $utmParamsCount,
+            'followers_new_rows' => $followersCountNew - $followersCount,
+            'marketing_metrics_new_rows' => $marketingMetricsCountNew - $marketingMetricsCount,
+            'marketing_channels_new_rows' => $marketingChannelsCountNew - $marketingChannelsCount,
+        ]);
     }
 }
