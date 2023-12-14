@@ -245,6 +245,8 @@ class UpdateFromGoogleSpreadsheet extends Command
         $rows = $sheet->get()->slice(2)->values();
         $header = $rows->pull(0);
         
+        dump($header); exit;
+        
         $values = Sheets::collection(header: $header, rows: $rows);
         
         $marketingHistoriesCount = DB::table('marketing_history')->count();
@@ -276,8 +278,8 @@ class UpdateFromGoogleSpreadsheet extends Command
                 $ctr = $this->strToFloat($value['ctr']);
                 $cpc = $this->strToFloat($value['cpc']);
                 $cr1 = $this->strToFloat($value['cr1']);
-                $conversion_cost = $this->strToFloat($value['conversion_cost']);
-                $new_followers = $this->strToInt($value['new_followers']);
+                $conversion_cost = $this->strToFloat($value[' conversion_cost']);
+                $new_followers = $this->strToInt($value[' new_followers']);
                 $cr2 = $this->strToFloat($value['cr2']);
                 $new_follower_cost = $this->strToFloat($value['new_follower_cost']);
 
