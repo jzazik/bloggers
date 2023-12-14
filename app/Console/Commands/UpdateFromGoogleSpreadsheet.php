@@ -245,8 +245,6 @@ class UpdateFromGoogleSpreadsheet extends Command
         $rows = $sheet->get()->slice(2)->values();
         $header = $rows->pull(0);
         
-        dump($header); exit;
-        
         $values = Sheets::collection(header: $header, rows: $rows);
         
         $marketingHistoriesCount = DB::table('marketing_history')->count();
