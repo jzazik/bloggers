@@ -281,10 +281,12 @@ class UpdateFromGoogleSpreadsheet extends Command
                 $new_followers = $this->strToInt($value[' new_followers']);
                 $cr2 = $this->strToFloat($value['cr2']);
                 $new_follower_cost = $this->strToFloat($value['new_follower_cost']);
+                $landing_page = $value['landing_page'];
 
                 DB::table('marketing_history')->insert([
                     'actual_date' => $actualDate,
                     'channel' => $channel,
+                    'landing_page' => $landing_page,
                     'impressions' => $impressions,
                     'ctr' => $ctr,
                     'clicks' => $visits,
@@ -309,6 +311,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                 MarketingMetric::updateOrCreate([
                     'channel_id' => $channel->channel_id,
                     'actual_date' => $actualDate,
+                    'landing_page' => $landing_page,
                 ], [
                     'impressions' => $impressions,
                     'clicks' => $visits,
@@ -368,7 +371,7 @@ class UpdateFromGoogleSpreadsheet extends Command
     {
         $updateLog = UpdateLog::create([
             'started_at' => Carbon::now(),
-            'next_start_at' => Carbon::now()->addHour()
+            'next_start_at' => Carbon::now()->addHour()->next_start_at()
         ]);
         
         $customersCount = DB::table('customers')->count();
