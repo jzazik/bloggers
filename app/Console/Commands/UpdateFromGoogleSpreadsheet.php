@@ -371,7 +371,7 @@ class UpdateFromGoogleSpreadsheet extends Command
     {
         $updateLog = UpdateLog::create([
             'started_at' => Carbon::now(),
-            'next_start_at' => Carbon::now()->addHour()->next_start_at()
+            'next_start_at' => Carbon::now()->addHour()->startOfHour()
         ]);
         
         $customersCount = DB::table('customers')->count();
