@@ -269,7 +269,7 @@ class UpdateFromGoogleSpreadsheet extends Command
 
             $countNew++;
 
-            DB::transaction(function () use ($value, $actualDate, $channel) {
+            DB::transaction(function () use ($value, $actualDate, $channel, $landing_page) {
                 
                 $impressions = $this->strToInt($value['impressions']);
                 $visits = $this->strToInt($value['clicks']);
