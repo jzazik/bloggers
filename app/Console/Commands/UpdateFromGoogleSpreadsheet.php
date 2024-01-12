@@ -257,11 +257,13 @@ class UpdateFromGoogleSpreadsheet extends Command
             
             $actualDate = $value['actual_date'] ? Carbon::parse($value['actual_date'])->toDateString() : null;
             $channel = $value['channel'];
-            
+            $landing_page = $value['landing_page'];
+
 
             $marketingHistory = DB::table('marketing_history')
                 ->where('actual_date', $actualDate)
-                ->where('channel', $channel);
+                ->where('channel', $channel)
+                ->where('landing_page', $landing_page);
 
             if ($marketingHistory->exists()) continue;
 
@@ -281,7 +283,6 @@ class UpdateFromGoogleSpreadsheet extends Command
                 $new_followers = $this->strToInt($value[' new_followers']);
                 $cr2 = $this->strToFloat($value['cr2']);
                 $new_follower_cost = $this->strToFloat($value['new_follower_cost']);
-                $landing_page = $value['landing_page'];
 
                 DB::table('marketing_history')->insert([
                     'actual_date' => $actualDate,
