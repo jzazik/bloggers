@@ -265,9 +265,9 @@ class UpdateFromGoogleSpreadsheet extends Command
                 ->where('channel', $channel)
                 ->where('landing_page', $landing_page);
 
-            if ($marketingHistory->exists()) continue;
-
-            $countNew++;
+            if (!$marketingHistory->exists()) {
+                $countNew++;
+            }
 
             DB::transaction(function () use ($value, $actualDate, $channel, $landing_page) {
                 
