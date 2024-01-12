@@ -251,7 +251,7 @@ class UpdateFromGoogleSpreadsheet extends Command
         $marketingHistoriesCount = DB::table('marketing_history')->count();
         $countNew = 0;
         foreach ($values as $key => $value) {
-            if ($key < $marketingHistoriesCount) continue;
+            if ($key <= $marketingHistoriesCount) continue;
             
             $this->info('Marketing Row ' . $key);
             
