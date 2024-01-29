@@ -14,6 +14,7 @@ class UpdateFromGoogleSpreadsheet extends Command
 {
 
     private $errors = 0;
+    private $error_details = [];
     private Model $updateLog;
     private Model $customer;
     private Model $transaction;
@@ -318,7 +319,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                 $saleNumber = self::getSaleNumber($value['products']);
                 
                 $data = [
-                    'form_id' => $value['formid'],
+//                    'form_id' => $value['formid'],
                     'sale_number' => $saleNumber,
                     'form_name' => $formName,
                     'order_id' => $value['orderid'],
@@ -347,13 +348,11 @@ class UpdateFromGoogleSpreadsheet extends Command
             } catch (\Exception $e) {
                 DB::connection($this->blogger)->rollback();
                 $this->errors++;
-                Log::error('Ошибка сохранения в бд', ['error' => $e->getMessage(), 'crm row' => $key]);
+                $this->error_details[] = ['строка в файле' => $key + 1, 'error' => $e->getMessage()];
             }
             
             
         }
-
-        Log::info('CRM New: ' . $countNew);
     }
     
     private function updateMarketing()
@@ -462,7 +461,6 @@ class UpdateFromGoogleSpreadsheet extends Command
             
         }
         
-        Log::info('Marketing New: ' . $countNew);
     }
     
     public function updateFollowers()
@@ -551,6 +549,7 @@ class UpdateFromGoogleSpreadsheet extends Command
 
         $updateLog->update([
             'errors' => $this->errors,
+            'error_details' => $this->error_details,
             'finished_at' => Carbon::now(),
             'transactions_new_rows' => $transactionsCountNew - $transactionsCount,
             'customers_new_rows' => $customersCountNew - $customersCount,

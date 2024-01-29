@@ -14,6 +14,7 @@ return new class extends Migration
         foreach (['popovich', 'kochfit'] as $connection) {
             Schema::connection($connection)->table('update_logs', function (Blueprint $table) {
                 $table->integer('errors')->after('next_start_at')->nullable();
+                $table->json('error_details')->after('errors')->nullable();
             });
         }
     }
@@ -25,7 +26,7 @@ return new class extends Migration
     {
         foreach (['popovich', 'kochfit'] as $connection) {
             Schema::connection($connection)->table('update_logs', function (Blueprint $table) {
-                $table->dropColumn(['errors']);
+                $table->dropColumn(['errors', 'error_details']);
             });
         }
     }
