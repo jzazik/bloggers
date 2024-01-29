@@ -1,15 +1,17 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Kochfit;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Follower extends Model
+class UpdateLog extends Model
 {
     use HasFactory;
 
-    public $timestamps = false;
+    protected $connection = 'kochfit';
 
     protected $guarded = ['id'];
+    
+    public $timestamps = false;
 }

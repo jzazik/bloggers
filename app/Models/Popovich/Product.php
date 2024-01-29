@@ -1,18 +1,17 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Popovich;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Transaction extends Model
+class Product extends Model
 {
     use HasFactory;
     
     public $timestamps = false;
-
-    protected $primaryKey = 'transaction_id';
     
-    protected $guarded = ['transaction_id'];
-
+    protected $primaryKey = 'product_id';
+    
+    protected $guarded = ['product_id'];
 }

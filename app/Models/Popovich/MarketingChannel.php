@@ -1,15 +1,17 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Popovich;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class UpdateLog extends Model
+class MarketingChannel extends Model
 {
     use HasFactory;
-    
-    protected $guarded = ['id'];
-    
+
     public $timestamps = false;
+
+    protected $primaryKey = 'channel_id';
+    
+    protected $guarded = ['channel_id'];
 }

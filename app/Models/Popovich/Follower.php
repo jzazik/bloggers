@@ -1,18 +1,15 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Popovich;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class UtmParam extends Model
+class Follower extends Model
 {
     use HasFactory;
 
     public $timestamps = false;
-    
-    protected $primaryKey = 'utm_id';
-    
-    protected $guarded = ['utm_id'];
 
+    protected $guarded = ['id'];
 }
