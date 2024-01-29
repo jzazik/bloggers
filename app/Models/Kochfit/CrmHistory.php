@@ -12,5 +12,10 @@ class CrmHistory extends Model
     protected $connection = 'kochfit';
 
     protected $table = 'crm_history';
+    
+    protected $guarded = ['id'];
+
+    public $timestamps = false;
+
 
 }

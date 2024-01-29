@@ -13,6 +13,7 @@ use Revolution\Google\Sheets\Facades\Sheets;
 class UpdateFromGoogleSpreadsheet extends Command
 {
 
+    private $errors = 0;
     private Model $updateLog;
     private Model $customer;
     private Model $transaction;
@@ -241,13 +242,14 @@ class UpdateFromGoogleSpreadsheet extends Command
                 $countNew++;
             }
 
-            DB::transaction(function () use ($crmHistory, $value, $isDuplicate) {
-                
+            DB::connection($this->blogger)->beginTransaction();
+            
+            try {
                 $formName = $this->blogger === 'kochfit' ? $value['Название формы'] : $value['Form name'];
                 $currency = $this->blogger === 'kochfit' ? $value['Валюта'] : $value['Currency'];
                 $paymentStatus = $this->blogger === 'kochfit' ? $value['Статус оплаты'] : $value['Payment status'];
-                
-                $this->crm_history->insert([
+
+                $this->crm_history->create([
                     'add_time' => now(),
                     'name' => $value['Name'],
                     'email' => $value['Email'],
@@ -330,18 +332,24 @@ class UpdateFromGoogleSpreadsheet extends Command
                     'payment_status' => $paymentStatus,
                     'referer' => $value['referer'],
                     'transaction_date' => Carbon::parse($value['sent'])->toDateTimeString(),
-
                     'customer_id' => $customer->customer_id,
                     'product_id' => $product->product_id,
                     'utm_id' => isset($utmParam) ? $utmParam->utm_id : null,
                 ];
-                
+
                 if ($this->isKochfit) {
                     unset($data['sale_number']);
                 }
 
                 $this->transaction::create($data);
-            });
+                
+                DB::connection($this->blogger)->commit();
+            } catch (\Exception $e) {
+                DB::connection($this->blogger)->rollback();
+                $this->errors++;
+                Log::error('Ошибка сохранения в бд', ['error' => $e->getMessage(), 'crm row' => $key]);
+            }
+            
             
         }
 
@@ -542,6 +550,7 @@ class UpdateFromGoogleSpreadsheet extends Command
         
 
         $updateLog->update([
+            'errors' => $this->errors,
             'finished_at' => Carbon::now(),
             'transactions_new_rows' => $transactionsCountNew - $transactionsCount,
             'customers_new_rows' => $customersCountNew - $customersCount,

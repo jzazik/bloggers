@@ -11,4 +11,8 @@ class MarketingHistory extends Model
 
     protected $table = 'marketing_history';
 
+    protected $guarded = ['id'];
+
+    public $timestamps = false;
+
 }

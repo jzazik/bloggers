@@ -10,4 +10,9 @@ class CrmHistory extends Model
     use HasFactory;
     
     protected $table = 'crm_history';
+
+    protected $guarded = ['id'];
+    
+    public $timestamps = false;
+
 }
