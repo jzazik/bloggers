@@ -319,7 +319,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                 $saleNumber = self::getSaleNumber($value['products']);
                 
                 $data = [
-//                    'form_id' => $value['formid'],
+                    'form_id' => $value['formid'],
                     'sale_number' => $saleNumber,
                     'form_name' => $formName,
                     'order_id' => $value['orderid'],
@@ -547,19 +547,25 @@ class UpdateFromGoogleSpreadsheet extends Command
         $marketingMetricsCountNew = $this->marketing_metric->count();
         $marketingChannelsCountNew = $this->marketing_channel->count();
         
-        dump($this->errors, $updateLog);
 
-        $updateLog->update([
-            'errors' => $this->errors,
-            'error_details' => $this->error_details,
-            'finished_at' => Carbon::now(),
-            'transactions_new_rows' => $transactionsCountNew - $transactionsCount,
-            'customers_new_rows' => $customersCountNew - $customersCount,
-            'products_new_rows' => $productsCountNew - $productsCount,
-            'utm_params_new_rows' => $utmParamsCountNew - $utmParamsCount,
-            'followers_new_rows' => $followersCountNew - $followersCount,
-            'marketing_metrics_new_rows' => $marketingMetricsCountNew - $marketingMetricsCount,
-            'marketing_channels_new_rows' => $marketingChannelsCountNew - $marketingChannelsCount,
-        ]);
+        try {
+            $result = $updateLog->update([
+                'errors' => $this->errors,
+                'error_details' => $this->error_details,
+                'finished_at' => Carbon::now(),
+                'transactions_new_rows' => $transactionsCountNew - $transactionsCount,
+                'customers_new_rows' => $customersCountNew - $customersCount,
+                'products_new_rows' => $productsCountNew - $productsCount,
+                'utm_params_new_rows' => $utmParamsCountNew - $utmParamsCount,
+                'followers_new_rows' => $followersCountNew - $followersCount,
+                'marketing_metrics_new_rows' => $marketingMetricsCountNew - $marketingMetricsCount,
+                'marketing_channels_new_rows' => $marketingChannelsCountNew - $marketingChannelsCount,
+            ]);
+        } catch (\Exception $e) {
+            dump($e->getMessage()); exit;
+        }
+
+        
+        dump($result);
     }
 }
