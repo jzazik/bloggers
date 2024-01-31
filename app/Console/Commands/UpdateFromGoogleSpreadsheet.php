@@ -282,9 +282,9 @@ class UpdateFromGoogleSpreadsheet extends Command
                     'ma_email' => $value['ma_email'],
                 ]);
 
-                if (!$value['price'] || (float)$value['price'] < 100 || mb_strpos(mb_strtolower($value['products']), 'доплата') !== false) return;
+                if (!$value['price'] || (float)$value['price'] < 100 || mb_strpos(mb_strtolower($value['products']), 'доплата') !== false) continue;
 
-                if ($isDuplicate) return;
+                if ($isDuplicate) continue;
                 
                 $customer = $this->customer::updateOrCreate(
                     [
@@ -534,8 +534,8 @@ class UpdateFromGoogleSpreadsheet extends Command
         $marketingChannelsCount = $this->marketing_channel->count();
         
         
-        $this->updateMarketing();
-        $this->updateFollowers();
+//        $this->updateMarketing();
+//        $this->updateFollowers();
         $this->updateCRM();
 
 
@@ -547,6 +547,7 @@ class UpdateFromGoogleSpreadsheet extends Command
         $marketingMetricsCountNew = $this->marketing_metric->count();
         $marketingChannelsCountNew = $this->marketing_channel->count();
         
+        dump($this->errors, $updateLog);
 
         $updateLog->update([
             'errors' => $this->errors,
