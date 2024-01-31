@@ -346,6 +346,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                 
                 DB::connection($this->blogger)->commit();
             } catch (\Exception $e) {
+                Log::error($e->getMessage());
                 DB::connection($this->blogger)->rollback();
                 $this->errors++;
                 $this->error_details[] = ['строка в файле' => $key + 1, 'error' => $e->getMessage()];
