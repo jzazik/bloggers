@@ -226,7 +226,6 @@ class UpdateFromGoogleSpreadsheet extends Command
 
         $crmHistoriesCount = $this->crm_history->count();
 
-        $countNew = 0;
         foreach ($values as $key => $value) {
             if ($key < $crmHistoriesCount) continue;
             
@@ -238,112 +237,114 @@ class UpdateFromGoogleSpreadsheet extends Command
                 ->where('sent', $value['sent'] ? Carbon::parse($value['sent'])->toDateTimeString() : null);
 
             $isDuplicate = $crmHistory->exists();
-      
-            DB::connection($this->blogger)->beginTransaction();
-            
+
             try {
-                $formName = $this->blogger === 'kochfit' ? $value['Название формы'] : $value['Form name'];
-                $currency = $this->blogger === 'kochfit' ? $value['Валюта'] : $value['Currency'];
-                $paymentStatus = $this->blogger === 'kochfit' ? $value['Статус оплаты'] : $value['Payment status'];
-
-                $this->crm_history->create([
-                    'add_time' => now(),
-                    'name' => $value['Name'],
-                    'email' => $value['Email'],
-                    'phone' => $value['Phone'],
-                    'paymentsystem' => $value['paymentsystem'],
-                    'orderid' => $value['orderid'],
-                    'paymentid' => $value['paymentid'],
-                    'products' => $value['products'],
-                    'price' => $this->strToFloat($value['price']),
-                    'promocode' => $value['promocode'],
-                    'discount' => $this->strToFloat($value['discount']),
-                    'subtotal' => $this->strToFloat($value['subtotal']),
-                    'cookies' => $value['cookies'],
-                    'currency' => $currency,
-                    'payment_status' => $paymentStatus,
-                    'referer' => $value['referer'],
-                    'formid' => $value['formid'],
-                    'form_name' => $formName,
-                    'sent' => Carbon::parse($value['sent'])->toDateTimeString(),
-                    'requestid' => $value['requestid'],
-                    'utm_source' => $value['utm_source'],
-                    'utm_medium' => $value['utm_medium'],
-                    'utm_campaign' => $value['utm_campaign'],
-                    'utm_term' => $value['utm_term'],
-                    'utm_content' => $value['utm_content'],
-                    'input_' => $value['Input'],
-                    'textarea' => $value['Textarea'],
-                    'ma_name' => $value['ma_name'],
-                    'ma_email' => $value['ma_email'],
-                ]);
-
-                if (!$value['price'] || (float)$value['price'] < 100 || mb_strpos(mb_strtolower($value['products']), 'доплата') !== false) continue;
-
-                if ($isDuplicate) continue;
                 
-                $customer = $this->customer::updateOrCreate(
-                    [
-                        'email' => strtolower($value['Email'])
-                    ],
-                    [
-                        'customer_name' => $value['Name'],
-                        'phone' => self::processPhone($value['Phone']),
+                DB::connection($this->blogger)->transaction(function () use ($crmHistory, $isDuplicate, $value, $key) {
+    
+                    $formName = $this->blogger === 'kochfit' ? $value['Название формы'] : $value['Form name'];
+                    $currency = $this->blogger === 'kochfit' ? $value['Валюта'] : $value['Currency'];
+                    $paymentStatus = $this->blogger === 'kochfit' ? $value['Статус оплаты'] : $value['Payment status'];
+    
+                    $this->crm_history->create([
+                        'add_time' => now(),
+                        'name' => $value['Name'],
+                        'email' => $value['Email'],
+                        'phone' => $value['Phone'],
+                        'paymentsystem' => $value['paymentsystem'],
+                        'orderid' => $value['orderid'],
+                        'paymentid' => $value['paymentid'],
+                        'products' => $value['products'],
+                        'price' => $this->strToFloat($value['price']),
+                        'promocode' => $value['promocode'],
+                        'discount' => $this->strToFloat($value['discount']),
+                        'subtotal' => $this->strToFloat($value['subtotal']),
+                        'cookies' => $value['cookies'],
+                        'currency' => $currency,
+                        'payment_status' => $paymentStatus,
+                        'referer' => $value['referer'],
+                        'formid' => $value['formid'],
+                        'form_name' => $formName,
+                        'sent' => Carbon::parse($value['sent'])->toDateTimeString(),
+                        'requestid' => $value['requestid'],
+                        'utm_source' => $value['utm_source'],
+                        'utm_medium' => $value['utm_medium'],
+                        'utm_campaign' => $value['utm_campaign'],
+                        'utm_term' => $value['utm_term'],
+                        'utm_content' => $value['utm_content'],
+                        'input_' => $value['Input'],
+                        'textarea' => $value['Textarea'],
+                        'ma_name' => $value['ma_name'],
+                        'ma_email' => $value['ma_email'],
                     ]);
+    
+                    if (!$value['price'] || (float)$value['price'] < 100 || mb_strpos(mb_strtolower($value['products']), 'доплата') !== false) return;
+    
+                    if ($isDuplicate) return;
+    
+                    $customer = $this->customer::updateOrCreate(
+                        [
+                            'email' => strtolower($value['Email'])
+                        ],
+                        [
+                            'customer_name' => $value['Name'],
+                            'phone' => self::processPhone($value['Phone']),
+                        ]);
+    
+                    $productName = $this->getProductName($value['products']);
+    
+                    $product = $this->product::updateOrCreate([
+                        'product_name' => $productName,
+                        'product_type' => self::getProductType($value['products']),
+                        'product_length' => self::getProductLength($productName),
+                        'product_price' => trim(explode('=', $value['products'])[1]),
+                    ]);
+    
+                    $utm = array_filter([
+                        'utm_source' => $value['utm_source'],
+                        'utm_medium' => $value['utm_medium'],
+                        'utm_campaign' => $value['utm_campaign'],
+                        'utm_term' => $value['utm_term'],
+                        'utm_content' => $value['utm_content'],
+                    ]);
+    
+                    if ($utm) {
+                        $utmParam = $this->utmParam::updateOrCreate($utm);
+                    }
+    
+                    $saleNumber = self::getSaleNumber($value['products']);
+    
+                    $data = [
+                        'form_id' => $value['formid'],
+                        'sale_number' => $saleNumber,
+                        'form_name' => $formName,
+                        'order_id' => $value['orderid'],
+                        'payment_system' => $value['paymentsystem'],
+                        'payment_id' => $value['paymentid'],
+                        'subtotal' => (int)$value['subtotal'],
+                        'promocode' => $value['promocode'],
+                        'discount' => (int)$value['discount'],
+                        'price' => (int)$value['price'],
+                        'currency' => $currency,
+                        'payment_status' => $paymentStatus,
+                        'referer' => $value['referer'],
+                        'transaction_date' => Carbon::parse($value['sent'])->toDateTimeString(),
+                        'customer_id' => $customer->customer_id,
+                        'product_id' => $product->product_id,
+                        'utm_id' => isset($utmParam) ? $utmParam->utm_id : null,
+                    ];
+    
+                    if ($this->isKochfit) {
+                        unset($data['sale_number']);
+                    }
+    
+                    $this->transaction::create($data);
+                    
+                    
+                });
 
-                $productName = $this->getProductName($value['products']);
-
-                $product = $this->product::updateOrCreate([
-                    'product_name' => $productName,
-                    'product_type' => self::getProductType($value['products']),
-                    'product_length' => self::getProductLength($productName),
-                    'product_price' => trim(explode('=', $value['products'])[1]),
-                ]);
-
-                $utm = array_filter([
-                    'utm_source' => $value['utm_source'],
-                    'utm_medium' => $value['utm_medium'],
-                    'utm_campaign' => $value['utm_campaign'],
-                    'utm_term' => $value['utm_term'],
-                    'utm_content' => $value['utm_content'],
-                ]);
-
-                if ($utm) {
-                    $utmParam = $this->utmParam::updateOrCreate($utm);
-                }
-
-                $saleNumber = self::getSaleNumber($value['products']);
-                
-                $data = [
-                    'form_id' => $value['formid'],
-                    'sale_number' => $saleNumber,
-                    'form_name' => $formName,
-                    'order_id' => $value['orderid'],
-                    'payment_system' => $value['paymentsystem'],
-                    'payment_id' => $value['paymentid'],
-                    'subtotal' => (int)$value['subtotal'],
-                    'promocode' => $value['promocode'],
-                    'discount' => (int)$value['discount'],
-                    'price' => (int)$value['price'],
-                    'currency' => $currency,
-                    'payment_status' => $paymentStatus,
-                    'referer' => $value['referer'],
-                    'transaction_date' => Carbon::parse($value['sent'])->toDateTimeString(),
-                    'customer_id' => $customer->customer_id,
-                    'product_id' => $product->product_id,
-                    'utm_id' => isset($utmParam) ? $utmParam->utm_id : null,
-                ];
-
-                if ($this->isKochfit) {
-                    unset($data['sale_number']);
-                }
-
-                $this->transaction::create($data);
-                
-                DB::connection($this->blogger)->commit();
             } catch (\Exception $e) {
                 Log::error($e->getMessage());
-                DB::connection($this->blogger)->rollback();
                 $this->errors++;
                 $this->error_details[] = ['строка в файле' => $key + 1, 'error' => $e->getMessage()];
             }
@@ -361,7 +362,6 @@ class UpdateFromGoogleSpreadsheet extends Command
         $values = Sheets::collection(header: $header, rows: $rows);
         
         $marketingHistoriesCount = $this->marketing_history->count();
-        $countNew = 0;
         foreach ($values as $key => $value) {
             if ($key < $marketingHistoriesCount) continue;
             
@@ -371,18 +371,6 @@ class UpdateFromGoogleSpreadsheet extends Command
             $channel = $value['channel'];
             $landing_page = $value['landing_page'] ?? null;
 
-
-            $marketingHistory = $this->marketing_history
-                ->where('actual_date', $actualDate)
-                ->where('channel', $channel);
-            
-            if (!$this->isKochfit) {
-                $marketingHistory = $marketingHistory->where('landing_page', $landing_page);
-            }
-
-            if (!$marketingHistory->exists()) {
-                $countNew++;
-            }
 
             DB::transaction(function () use ($value, $actualDate, $channel, $landing_page) {
                 
@@ -530,8 +518,8 @@ class UpdateFromGoogleSpreadsheet extends Command
         $marketingChannelsCount = $this->marketing_channel->count();
         
         
-//        $this->updateMarketing();
-//        $this->updateFollowers();
+        $this->updateMarketing();
+        $this->updateFollowers();
         $this->updateCRM();
 
 
@@ -542,26 +530,19 @@ class UpdateFromGoogleSpreadsheet extends Command
         $followersCountNew = $this->follower->count();
         $marketingMetricsCountNew = $this->marketing_metric->count();
         $marketingChannelsCountNew = $this->marketing_channel->count();
-        
 
-        try {
-            $result = $updateLog->update([
-                'errors' => $this->errors,
-                'error_details' => $this->error_details,
-                'finished_at' => Carbon::now(),
-                'transactions_new_rows' => $transactionsCountNew - $transactionsCount,
-                'customers_new_rows' => $customersCountNew - $customersCount,
-                'products_new_rows' => $productsCountNew - $productsCount,
-                'utm_params_new_rows' => $utmParamsCountNew - $utmParamsCount,
-                'followers_new_rows' => $followersCountNew - $followersCount,
-                'marketing_metrics_new_rows' => $marketingMetricsCountNew - $marketingMetricsCount,
-                'marketing_channels_new_rows' => $marketingChannelsCountNew - $marketingChannelsCount,
-            ]);
-        } catch (\Exception $e) {
-            dump($e->getMessage()); exit;
-        }
-
+        $updateLog->update([
+            'errors' => $this->errors,
+            'error_details' => $this->error_details,
+            'finished_at' => Carbon::now(),
+            'transactions_new_rows' => $transactionsCountNew - $transactionsCount,
+            'customers_new_rows' => $customersCountNew - $customersCount,
+            'products_new_rows' => $productsCountNew - $productsCount,
+            'utm_params_new_rows' => $utmParamsCountNew - $utmParamsCount,
+            'followers_new_rows' => $followersCountNew - $followersCount,
+            'marketing_metrics_new_rows' => $marketingMetricsCountNew - $marketingMetricsCount,
+            'marketing_channels_new_rows' => $marketingChannelsCountNew - $marketingChannelsCount,
+        ]);
         
-        dump($result);
     }
 }
