@@ -319,7 +319,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                 $saleNumber = self::getSaleNumber($value['products']);
                 
                 $data = [
-                    'form_id' => $value['formid'],
+//                    'form_id' => $value['formid'],
                     'sale_number' => $saleNumber,
                     'form_name' => $formName,
                     'order_id' => $value['orderid'],
