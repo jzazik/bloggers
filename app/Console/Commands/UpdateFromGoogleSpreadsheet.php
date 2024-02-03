@@ -66,10 +66,6 @@ class UpdateFromGoogleSpreadsheet extends Command
     
         if ($this->isKochfit) {
 
-            if (mb_strpos(mb_strtolower($products), 'красота и здоровье лайт') !== false) {
-                return 'Красота и здоровье Лайт';
-            }
-
             if (mb_strpos(mb_strtolower($products), 'красота и здоровье стандарт') !== false) {
                 return 'Красота и здоровье Стандарт';
             }
