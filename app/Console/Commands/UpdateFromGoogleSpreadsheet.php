@@ -24,6 +24,7 @@ class UpdateFromGoogleSpreadsheet extends Command
     private Model $marketing_metric;
     private Model $marketing_channel;
     private Model $marketing_history;
+    private Model $subscription;
     private Model $crm_history;
     private string $blogger;
     private bool $isKochfit;
@@ -61,20 +62,92 @@ class UpdateFromGoogleSpreadsheet extends Command
         return $phone;
     }
     
+    private function getProductForm($products): string
+    {
+        if (mb_strpos(mb_strtolower($products), 'подписка') !== false) {
+            return 'Подписка';
+        }
+
+        if (mb_strpos(mb_strtolower($products), 'продление') !== false || mb_strpos(mb_strtolower($products), 'повторно') !== false) {
+            return 'Продление';
+        }
+        
+        return 'База';
+        
+   }
+
+    private function getProductFormForSubscription($products, $refund = false): string
+    {
+        if (mb_strpos(mb_strtolower($products), 'подписка') !== false) {
+            return 'Подписка';
+        }
+
+        if (mb_strpos(mb_strtolower($products), 'продление') !== false) {
+            return 'Продление';
+        }
+        
+        return $refund ? 'База' : 'Подписка';
+
+    }
+
+    private function getProductTypeForSubscription($products): string
+    {
+
+        if ($this->isKochfit) {
+
+            if (mb_strpos(mb_strtolower($products), 'лайт') !== false || mb_strpos(mb_strtolower($products), 'стандарт') !== false) {
+                return 'Красота и здоровье Стандарт';
+            }
+
+            if (mb_strpos(mb_strtolower($products), 'премиум') !== false) {
+                return 'Красота и здоровье Премиум';
+            }
+
+            if (mb_strpos(mb_strtolower($products), 'тестовая неделя') !== false) {
+                return 'Красота и здоровье Тестовая неделя';
+            }
+
+            if (mb_strpos(mb_strtolower($products), 'мтд') !== false) {
+                return 'МТД и дыхание';
+            }
+
+            if (mb_strpos(mb_strtolower($products), 'восстановление') !== false) {
+                return 'Восстановление после родов';
+            }
+
+            if (mb_strpos(mb_strtolower($products), 'активная') !== false) {
+                return 'Активная беременность';
+            }
+
+            if (mb_strpos(mb_strtolower($products), 'фитнес тур') !== false) {
+                return 'Фитнес тур';
+            }
+
+        }
+
+        return '';
+
+    }
+    
     private function getProductType($products): string
     {
     
         if ($this->isKochfit) {
 
-            if (mb_strpos(mb_strtolower($products), 'красота и здоровье стандарт') !== false) {
+            if (mb_strpos(mb_strtolower($products), 'красота и здоровье') !== false 
+                && (
+                    mb_strpos(mb_strtolower($products), 'лайт') || mb_strpos(mb_strtolower($products), 'стандарт')
+                )) {
                 return 'Красота и здоровье Стандарт';
             }
 
-            if (mb_strpos(mb_strtolower($products), 'красота и здоровье премиум') !== false) {
+            if (mb_strpos(mb_strtolower($products), 'красота и здоровье') !== false 
+                && mb_strpos(mb_strtolower($products), 'премиум') !== false) {
                 return 'Красота и здоровье Премиум';
             }
             
-            if (mb_strpos(mb_strtolower($products), 'красота и здоровье тестовая неделя') !== false) {
+            if (mb_strpos(mb_strtolower($products), 'красота и здоровье') !== false
+                && mb_strpos(mb_strtolower($products), 'тестовая неделя') !== false) {
                 return 'Красота и здоровье Тестовая неделя';
             }
             
@@ -289,12 +362,18 @@ class UpdateFromGoogleSpreadsheet extends Command
     
                     $productName = $this->getProductName($value['products']);
     
-                    $product = $this->product::updateOrCreate([
+                    $data = [
                         'product_name' => $productName,
                         'product_type' => self::getProductType($value['products']),
                         'product_length' => self::getProductLength($productName),
                         'product_price' => trim(explode('=', $value['products'])[1]),
-                    ]);
+                    ];
+                    
+                    if ($this->isKochfit) {
+                        $data['product_form'] =  self::getProductForm($value['products']);
+                    }
+                    
+                    $product = $this->product::updateOrCreate($data);
     
                     $utm = array_filter([
                         'utm_source' => $value['utm_source'],
@@ -340,6 +419,84 @@ class UpdateFromGoogleSpreadsheet extends Command
                 });
 
             } catch (\Exception $e) {
+                Log::error($e->getMessage());
+                $this->errors++;
+                $this->error_details[] = ['строка в файле' => $key + 1, 'error' => $e->getMessage()];
+            }
+            
+            
+        }
+    }
+    
+    private function updateSubscriptions()
+    {
+        $sheet = Sheets::spreadsheet(env('SUBSCRIPTION_SPREADSHEET_ID_' . strtoupper($this->blogger)));
+        $sheet = $sheet->sheet('Sheet1');
+
+        $rows = $sheet->get();
+        $header = $rows->pull(0);
+        $values = Sheets::collection(header: $header, rows: $rows);
+        
+        $maxSubscriptionRow = $this->subscription->max('row_num') ?? 0;
+        
+        foreach ($values as $key => $value) {
+            if ($key <= $maxSubscriptionRow) continue;
+            
+            $this->info('Subscription Row ' . $key);
+            
+            try {
+                
+                $table = '';
+                if (mb_strpos(mb_strtolower($value['Type']), 'регулярная оплата') !== false
+                    && mb_strpos(mb_strtolower($value['Url']), 'kochfit.ru') !== false
+                    && mb_strpos(mb_strtolower($value['Status']), 'завершена') !== false
+                ) {
+                    $table = 'subscriptions';
+                }
+
+                if (mb_strpos(mb_strtolower($value['Type']), 'возврат') !== false
+                    && mb_strpos(mb_strtolower($value['Url']), 'kochfit.ru') !== false
+                    && mb_strpos(mb_strtolower($value['Status']), 'завершена') !== false
+                ) {
+                    $table = 'refunds';
+                }
+                
+                if (!$table) continue;
+                
+                $customer = $this->customer->where('email', mb_strtolower($value['E-Mail']))->first();
+
+                if (!$customer) continue;
+
+                $confirm_date = $value['Confirm date/time'] ? Carbon::parse($value['Confirm date/time'])->toDateTimeString() : null;
+                
+                if (
+                    DB::connection($this->blogger)
+                        ->table($table)
+                        ->where('customer_id', $customer->customer_id)
+                        ->where('confirm_date', $confirm_date)
+                        ->where('summ', $value['Summ'])
+                        ->exists()
+                ) {
+                    continue;
+                }
+                
+                DB::connection($this->blogger)->table($table)->insert([
+                    'customer_id' => $customer->customer_id,
+                    'confirm_date' => $confirm_date,
+                    'summ' => $value['Summ'],
+                    'currency' => $value['Currency'],
+                    'transaction_type' => $value['Type'],
+                    'product' => $value['Purpose'],
+                    'product_type' => self::getProductTypeForSubscription($value['Purpose']),
+                    'product_form' => self::getProductFormForSubscription($value['Purpose'], $table === 'refunds'),
+                    'url' => $value['Url'],
+                    'status' => $value['Status'],
+                    'row_num' => $key
+                ]);
+                
+
+            } catch (\Exception $e) {
+                
                 Log::error($e->getMessage());
                 $this->errors++;
                 $this->error_details[] = ['строка в файле' => $key + 1, 'error' => $e->getMessage()];
@@ -499,6 +656,7 @@ class UpdateFromGoogleSpreadsheet extends Command
         $this->marketing_channel = new ($namespace . 'MarketingChannel')();
         $this->marketing_history = new ($namespace . 'MarketingHistory')();
         $this->crm_history = new ($namespace . 'CrmHistory')();
+        $this->subscription = new ($namespace . 'Subscription')();
         
         $updateLog = $this->updateLog::create([
             'started_at' => Carbon::now(),
@@ -517,6 +675,9 @@ class UpdateFromGoogleSpreadsheet extends Command
         $this->updateMarketing();
         $this->updateFollowers();
         $this->updateCRM();
+        if ($this->isKochfit) {
+            $this->updateSubscriptions();
+        }
 
 
         $customersCountNew = $this->customer->count();
