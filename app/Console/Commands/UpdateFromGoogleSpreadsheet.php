@@ -472,25 +472,21 @@ class UpdateFromGoogleSpreadsheet extends Command
                 $action_date = $value['Confirm date/time'] ? Carbon::parse($value['Confirm date/time'])->toDateTimeString() : null;
                 $sum = (int)$value['Summ'];
                 
-                if (($table = 'subscriptions' &&
+                if (($table === 'subscriptions' &&
                     DB::connection($this->blogger)
                         ->table($table)
                         ->where('customer_id', $customer->customer_id)
                         ->where('subscription_date', $action_date)
                         ->where('subscription_amount', $sum)
                         ->exists())
+                    || ($table === 'refunds' &&
+                        DB::connection($this->blogger)
+                            ->table($table)
+                            ->where('customer_id', $customer->customer_id)
+                            ->where('refund_date', $action_date)
+                            ->where('refund_amount', $sum)
+                            ->exists())
                 ) {
-                    continue;
-                }
-                
-                if (($table = 'refunds' &&
-                    DB::connection($this->blogger)
-                        ->table($table)
-                        ->where('customer_id', $customer->customer_id)
-                        ->where('refund_date', $action_date)
-                        ->where('refund_amount', $sum)
-                        ->exists()))
-                {
                     continue;
                 }
                 
