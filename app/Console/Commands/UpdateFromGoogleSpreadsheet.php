@@ -25,6 +25,8 @@ class UpdateFromGoogleSpreadsheet extends Command
     private Model $marketing_channel;
     private Model $marketing_history;
     private Model $subscription;
+    private Model $refund;
+    private Model $installment;
     private Model $crm_history;
     private string $blogger;
     private bool $isKochfit;
@@ -241,10 +243,9 @@ class UpdateFromGoogleSpreadsheet extends Command
             if (mb_strpos(mb_strtolower($products), 'тестовая неделя') !== false) {
                 return '7';
             }
-            
-            if (mb_strpos(mb_strtolower($products), 'подписка') !== false) {
-                return '30';
-            }
+
+            return '30';
+
         }
         
         if (mb_strpos(mb_strtolower($products), '12') !== false) {
@@ -462,37 +463,62 @@ class UpdateFromGoogleSpreadsheet extends Command
                 }
                 
                 if (!$table) continue;
+                if ($value['Summ'] < 100 || !$value['Summ']) continue;
                 
-                $customer = $this->customer->where('email', mb_strtolower($value['E-Mail']))->first();
+                $customer = $this->customer->firstOrCreate([
+                    strtolower($value['E-Mail'])
+                ]);
 
-                if (!$customer) continue;
-
-                $confirm_date = $value['Confirm date/time'] ? Carbon::parse($value['Confirm date/time'])->toDateTimeString() : null;
+                $action_date = $value['Confirm date/time'] ? Carbon::parse($value['Confirm date/time'])->toDateTimeString() : null;
+                $sum = round($value['Summ']);
                 
-                if (
+                if (($table = 'subscriptions' &&
                     DB::connection($this->blogger)
                         ->table($table)
                         ->where('customer_id', $customer->customer_id)
-                        ->where('confirm_date', $confirm_date)
-                        ->where('summ', $value['Summ'])
-                        ->exists()
+                        ->where('subscription_date', $action_date)
+                        ->where('subscription_amount', $sum)
+                        ->exists())
+                    || ($table = 'refunds' &&
+                        DB::connection($this->blogger)
+                            ->table($table)
+                            ->where('customer_id', $customer->customer_id)
+                            ->where('refund_date', $action_date)
+                            ->where('refund_amount', $sum)
+                            ->exists())
                 ) {
                     continue;
                 }
                 
-                DB::connection($this->blogger)->table($table)->insert([
-                    'customer_id' => $customer->customer_id,
-                    'confirm_date' => $confirm_date,
-                    'summ' => $value['Summ'],
-                    'currency' => $value['Currency'],
-                    'transaction_type' => $value['Type'],
+                $product = $this->product->firstOrCreate([
                     'product' => $value['Purpose'],
                     'product_type' => self::getProductTypeForSubscription($value['Purpose']),
                     'product_form' => self::getProductFormForSubscription($value['Purpose'], $table === 'refunds'),
+                    'product_length' => self::getProductLength($value['Purpose'])
+                ]);
+
+
+                $data = [
+                    'customer_id' => $customer->customer_id,
+                    'currency' => $value['Currency'],
+                    'transaction_type' => $value['Type'],
+                    'product_id' => $product->product_id,
                     'url' => $value['Url'],
                     'status' => $value['Status'],
                     'row_num' => $key
-                ]);
+                ];
+                
+                
+                if ($table === 'refunds') {
+                    $data['refund_date'] = $action_date;
+                    $data['refund_amount'] = $sum;
+                } else {
+                    $data['subscription_date'] = $action_date;
+                    $data['subscription_amount'] = $sum;
+                }
+                
+                
+                DB::connection($this->blogger)->table($table)->insert($data);
                 
 
             } catch (\Exception $e) {
@@ -503,6 +529,68 @@ class UpdateFromGoogleSpreadsheet extends Command
             }
             
             
+        }
+    }
+    
+    private function updateInstallments()
+    {
+
+        $sheet = Sheets::spreadsheet(env('INSTALLMENT_SPREADSHEET_ID_' . strtoupper($this->blogger)));
+        $sheet = $sheet->sheet('Sheet1');
+
+        $rows = $sheet->get();
+        $header = $rows->pull(0);
+        $values = Sheets::collection(header: $header, rows: $rows);
+
+        $maxinstallmentRow = $this->installment->max('row_num') ?? 0;
+
+        foreach ($values as $key => $value) {
+            if ($key <= $maxinstallmentRow) continue;
+
+            $this->info('Installments Row ' . $key);
+
+            try {
+
+                $customer = $this->customer->firstOrCreate([
+                    strtolower($value['email'])
+                ]);
+                
+                $amount = round($value['installment_amount']);
+
+                if ($this->installment
+                    ->where('customer_id', $customer->customer_id)
+                    ->where('installment_date', $value['installment_date'])
+                    ->where('installment_amount', $amount)
+                    ->exists()) continue;
+
+                $product = $this->product->firstOrCreate([
+                    'product' => $value['product'],
+                    'product_type' => self::getProductTypeForSubscription($value['product']),
+                    'product_form' => self::getProductFormForSubscription($value['product'], true),
+                    'product_length' => self::getProductLength($value['product'])
+                ]);
+
+
+                $data = [
+                    'customer_id' => $customer->customer_id,
+                    'installment_date' => $value['installment_date'],
+                    'installment_amount' => $amount,
+                    'product_id' => $product->product_id,
+                    'currency' => $value['currency'],
+                    'row_num' => $key
+                ];
+
+                $this->installment->create($data);
+
+
+            } catch (\Exception $e) {
+
+                Log::error($e->getMessage());
+                $this->errors++;
+                $this->error_details[] = ['строка в файле' => $key + 1, 'error' => $e->getMessage()];
+            }
+
+
         }
     }
     
@@ -658,6 +746,8 @@ class UpdateFromGoogleSpreadsheet extends Command
         $this->crm_history = new ($namespace . 'CrmHistory')();
         if ($this->isKochfit) {
             $this->subscription = new ($namespace . 'Subscription')();
+            $this->refund = new ($namespace . 'Refund')();
+            $this->installment = new ($namespace . 'Installment')();
         }
         
         $updateLog = $this->updateLog::create([
@@ -673,12 +763,19 @@ class UpdateFromGoogleSpreadsheet extends Command
         $marketingMetricsCount = $this->marketing_metric->count();
         $marketingChannelsCount = $this->marketing_channel->count();
         
+        if ($this->isKochfit) {
+            $subscriptionsCount = $this->subscription->count();
+            $installmentsCount = $this->installment->count();
+            $refundsCount = $this->refund->count();
+        }
+        
         
         $this->updateMarketing();
         $this->updateFollowers();
         $this->updateCRM();
         if ($this->isKochfit) {
             $this->updateSubscriptions();
+            $this->updateInstallments();
         }
 
 
@@ -690,7 +787,13 @@ class UpdateFromGoogleSpreadsheet extends Command
         $marketingMetricsCountNew = $this->marketing_metric->count();
         $marketingChannelsCountNew = $this->marketing_channel->count();
 
-        $updateLog->update([
+        if ($this->isKochfit) {
+            $subscriptionsCountNew = $this->subscription->count();
+            $installmentsCountNew = $this->installment->count();
+            $refundsCountNew = $this->refund->count();
+        }
+        
+        $data = [
             'errors' => $this->errors,
             'error_details' => $this->error_details,
             'finished_at' => Carbon::now(),
@@ -701,7 +804,15 @@ class UpdateFromGoogleSpreadsheet extends Command
             'followers_new_rows' => $followersCountNew - $followersCount,
             'marketing_metrics_new_rows' => $marketingMetricsCountNew - $marketingMetricsCount,
             'marketing_channels_new_rows' => $marketingChannelsCountNew - $marketingChannelsCount,
-        ]);
+        ];
+        
+        if ($this->isKochfit) {
+            $data['subscriptions_new_rows'] = $subscriptionsCountNew - $subscriptionsCount;
+            $data['installments_new_rows'] = $installmentsCountNew - $installmentsCount;
+            $data['refunds_new_rows'] = $refundsCountNew - $refundsCount;
+        }
+
+        $updateLog->update($data);
         
     }
 }
