@@ -656,7 +656,9 @@ class UpdateFromGoogleSpreadsheet extends Command
         $this->marketing_channel = new ($namespace . 'MarketingChannel')();
         $this->marketing_history = new ($namespace . 'MarketingHistory')();
         $this->crm_history = new ($namespace . 'CrmHistory')();
-        $this->subscription = new ($namespace . 'Subscription')();
+        if ($this->isKochfit) {
+            $this->subscription = new ($namespace . 'Subscription')();
+        }
         
         $updateLog = $this->updateLog::create([
             'started_at' => Carbon::now(),
