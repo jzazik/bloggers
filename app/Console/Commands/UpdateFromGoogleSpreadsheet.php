@@ -466,7 +466,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                 if ($value['Summ'] < 100 || !$value['Summ']) continue;
                 
                 $customer = $this->customer->firstOrCreate([
-                    strtolower($value['E-Mail'])
+                    'email' => strtolower($value['E-Mail'])
                 ]);
 
                 $action_date = $value['Confirm date/time'] ? Carbon::parse($value['Confirm date/time'])->toDateTimeString() : null;
@@ -552,7 +552,7 @@ class UpdateFromGoogleSpreadsheet extends Command
             try {
 
                 $customer = $this->customer->firstOrCreate([
-                    strtolower($value['email'])
+                    'email' => strtolower($value['email'])
                 ]);
                 
                 $amount = round($value['installment_amount']);
