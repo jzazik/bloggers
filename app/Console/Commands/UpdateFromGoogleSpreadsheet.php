@@ -479,14 +479,18 @@ class UpdateFromGoogleSpreadsheet extends Command
                         ->where('subscription_date', $action_date)
                         ->where('subscription_amount', $sum)
                         ->exists())
-                    || ($table = 'refunds' &&
-                        DB::connection($this->blogger)
-                            ->table($table)
-                            ->where('customer_id', $customer->customer_id)
-                            ->where('refund_date', $action_date)
-                            ->where('refund_amount', $sum)
-                            ->exists())
                 ) {
+                    continue;
+                }
+                
+                if (($table = 'refunds' &&
+                    DB::connection($this->blogger)
+                        ->table($table)
+                        ->where('customer_id', $customer->customer_id)
+                        ->where('refund_date', $action_date)
+                        ->where('refund_amount', $sum)
+                        ->exists()))
+                {
                     continue;
                 }
                 
