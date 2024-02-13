@@ -491,7 +491,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                 }
                 
                 $product = $this->product->firstOrCreate([
-                    'product' => $value['Purpose'],
+                    'product_name' => $value['Purpose'],
                     'product_type' => self::getProductTypeForSubscription($value['Purpose']),
                     'product_form' => self::getProductFormForSubscription($value['Purpose'], $table === 'refunds'),
                     'product_length' => self::getProductLength($value['Purpose'])
@@ -564,7 +564,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                     ->exists()) continue;
 
                 $product = $this->product->firstOrCreate([
-                    'product' => $value['product'],
+                    'product_name' => $value['product'],
                     'product_type' => self::getProductTypeForSubscription($value['product']),
                     'product_form' => self::getProductFormForSubscription($value['product'], true),
                     'product_length' => self::getProductLength($value['product'])
