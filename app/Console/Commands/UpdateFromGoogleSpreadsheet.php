@@ -470,7 +470,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                 ]);
 
                 $action_date = $value['Confirm date/time'] ? Carbon::parse($value['Confirm date/time'])->toDateTimeString() : null;
-                $sum = round($value['Summ']);
+                $sum = (int)$value['Summ'];
                 
                 if (($table = 'subscriptions' &&
                     DB::connection($this->blogger)
@@ -555,7 +555,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                     'email' => strtolower($value['email'])
                 ]);
                 
-                $amount = round($value['installment_amount']);
+                $amount = (int)($value['installment_amount']);
 
                 if ($this->installment
                     ->where('customer_id', $customer->customer_id)
