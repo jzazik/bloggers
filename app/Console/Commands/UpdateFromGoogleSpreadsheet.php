@@ -557,10 +557,11 @@ class UpdateFromGoogleSpreadsheet extends Command
                 ]);
                 
                 $amount = (int)($value['installment_amount']);
+                $dateTime = $value['installment_date'] ? Carbon::parse($value['installment_date'])->toDateTimeString() : null;
 
                 if ($this->installment
                     ->where('customer_id', $customer->customer_id)
-                    ->where('installment_date', $value['installment_date'])
+                    ->where('installment_date', $dateTime)
                     ->where('installment_amount', $amount)
                     ->exists()) continue;
 
@@ -574,7 +575,7 @@ class UpdateFromGoogleSpreadsheet extends Command
 
                 $data = [
                     'customer_id' => $customer->customer_id,
-                    'installment_date' => $value['installment_date'],
+                    'installment_date' => $dateTime,
                     'installment_amount' => $amount,
                     'product_id' => $product->product_id,
                     'currency' => $value['currency'],
