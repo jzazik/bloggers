@@ -494,7 +494,8 @@ class UpdateFromGoogleSpreadsheet extends Command
                     'product_name' => $value['Purpose'],
                     'product_type' => self::getProductTypeForSubscription($value['Purpose']),
                     'product_form' => self::getProductFormForSubscription($value['Purpose'], $table === 'refunds'),
-                    'product_length' => self::getProductLength($value['Purpose'])
+                    'product_length' => self::getProductLength($value['Purpose']),
+                    'product_price' => $sum,
                 ]);
 
 
