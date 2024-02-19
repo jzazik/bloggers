@@ -97,7 +97,7 @@ class UpdateFromGoogleSpreadsheet extends Command
 
         if ($this->isKochfit) {
 
-            if (mb_strpos(mb_strtolower($products), 'лайт') !== false || mb_strpos(mb_strtolower($products), 'стандарт') !== false) {
+            if (mb_strpos(mb_strtolower($products), 'лайт') !== false || mb_strpos(mb_strtolower($products), 'тандарт') !== false) {
                 return 'Красота и здоровье Стандарт';
             }
 
@@ -138,7 +138,7 @@ class UpdateFromGoogleSpreadsheet extends Command
 
             if (mb_strpos(mb_strtolower($products), 'красота и здоровье') !== false 
                 && (
-                    mb_strpos(mb_strtolower($products), 'лайт') || mb_strpos(mb_strtolower($products), 'стандарт')
+                    mb_strpos(mb_strtolower($products), 'лайт') || mb_strpos(mb_strtolower($products), 'тандарт')
                 )) {
                 return 'Красота и здоровье Стандарт';
             }
