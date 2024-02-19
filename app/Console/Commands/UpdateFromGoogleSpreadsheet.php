@@ -95,33 +95,39 @@ class UpdateFromGoogleSpreadsheet extends Command
     private function getProductTypeForSubscription($products): string
     {
 
-        if (mb_strpos(mb_strtolower($products), 'лайт') !== false || mb_strpos(mb_strtolower($products), 'тандарт') !== false) {
-            return 'Красота и здоровье Стандарт';
+        if ($this->isKochfit) {
+
+            if (mb_strpos(mb_strtolower($products), 'лайт') !== false || mb_strpos(mb_strtolower($products), 'стандарт') !== false) {
+                return 'Красота и здоровье Стандарт';
+            }
+
+            if (mb_strpos(mb_strtolower($products), 'премиум') !== false) {
+                return 'Красота и здоровье Премиум';
+            }
+
+            if (mb_strpos(mb_strtolower($products), 'тестовая неделя') !== false) {
+                return 'Красота и здоровье Тестовая неделя';
+            }
+
+            if (mb_strpos(mb_strtolower($products), 'мтд') !== false) {
+                return 'МТД и дыхание';
+            }
+
+            if (mb_strpos(mb_strtolower($products), 'восстановление') !== false) {
+                return 'Восстановление после родов';
+            }
+
+            if (mb_strpos(mb_strtolower($products), 'активная') !== false) {
+                return 'Активная беременность';
+            }
+
+            if (mb_strpos(mb_strtolower($products), 'фитнес тур') !== false) {
+                return 'Фитнес тур';
+            }
+
         }
 
-        if (mb_strpos(mb_strtolower($products), 'премиум') !== false) {
-            return 'Красота и здоровье Премиум';
-        }
-
-        if (mb_strpos(mb_strtolower($products), 'тестовая неделя') !== false) {
-            return 'Красота и здоровье Тестовая неделя';
-        }
-
-        if (mb_strpos(mb_strtolower($products), 'мтд') !== false) {
-            return 'МТД и дыхание';
-        }
-
-        if (mb_strpos(mb_strtolower($products), 'восстановление') !== false) {
-            return 'Восстановление после родов';
-        }
-
-        if (mb_strpos(mb_strtolower($products), 'активная') !== false) {
-            return 'Активная беременность';
-        }
-
-        if (mb_strpos(mb_strtolower($products), 'фитнес тур') !== false) {
-            return 'Фитнес тур';
-        }
+        return '';
 
     }
     
@@ -132,7 +138,7 @@ class UpdateFromGoogleSpreadsheet extends Command
 
             if (mb_strpos(mb_strtolower($products), 'красота и здоровье') !== false 
                 && (
-                    mb_strpos(mb_strtolower($products), 'лайт') || mb_strpos(mb_strtolower($products), 'тандарт')
+                    mb_strpos(mb_strtolower($products), 'лайт') || mb_strpos(mb_strtolower($products), 'стандарт')
                 )) {
                 return 'Красота и здоровье Стандарт';
             }
