@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
     {
          $schedule->command('app:update-from-google-spreadsheet popovich')->hourly();
          $schedule->command('app:update-from-google-spreadsheet kochfit')->hourly();
+         $schedule->command('app:update-from-google-spreadsheet kinezio')->hourly();
     }
 
     /**

@@ -30,10 +30,12 @@ class UpdateFromGoogleSpreadsheet extends Command
     private Model $crm_history;
     private string $blogger;
     private bool $isKochfit;
+    private bool $isKinezio;
 
     private array $bloggerList = [
         'popovich',
         'kochfit',
+        'kinezio'
     ];
 
     /**
@@ -134,7 +136,25 @@ class UpdateFromGoogleSpreadsheet extends Command
     private function getProductType($products): string
     {
     
-        if ($this->isKochfit) {
+        if ($this->isKinezio) {
+            if (mb_strpos(mb_strtolower($products), 'фундамент') !== false
+                && mb_strpos(mb_strtolower($products), 'с обратной связью') !== false) {
+                return 'Фундамент с обратной связью';
+            }
+            
+            if (mb_strpos(mb_strtolower($products), 'фундамент') !== false
+                && mb_strpos(mb_strtolower($products), 'без обратной связи') !== false) {
+                return 'Фундамент без обратной связи';
+            }
+            
+            if (mb_strpos(mb_strtolower($products), 'анатомия') !== false) {
+                return 'Анатомия'; 
+            }
+            
+            if (mb_strpos(mb_strtolower($products), 'пробный') !== false) {
+                return 'Пробный';
+            }
+        } else if ($this->isKochfit) {
 
             if (mb_strpos(mb_strtolower($products), 'красота и здоровье') !== false 
                 && (
@@ -221,6 +241,22 @@ class UpdateFromGoogleSpreadsheet extends Command
 
     private function getProductLength($products): string
     {
+        if ($this->isKinezio) {
+            if (mb_strpos(mb_strtolower($products), 'фундамент') !== false) {
+                return '6';
+            }
+
+            if (mb_strpos(mb_strtolower($products), 'анатомия') !== false) {
+                return '1';
+            }
+            
+            if (mb_strpos(mb_strtolower($products), 'пробный') !== false) {
+                return '0';
+            }
+            
+            return '0';
+        }
+        
         if ($this->isKochfit) {
             
             $numbers = preg_replace('/[^0-9]/', '', $products);
@@ -284,7 +320,7 @@ class UpdateFromGoogleSpreadsheet extends Command
     private function updateCRM()
     {
         $sheet = Sheets::spreadsheet(env('CRM_SPREADSHEET_ID_' . strtoupper($this->blogger)));
-        if ($this->isKochfit) {
+        if ($this->isKochfit || $this->isKinezio) {
             $sheet = $sheet->sheet('Sheet1');
         } else {
             $sheet = $sheet->sheet('Лист1');
@@ -347,8 +383,10 @@ class UpdateFromGoogleSpreadsheet extends Command
                         'ma_name' => $value['ma_name'],
                         'ma_email' => $value['ma_email'],
                     ]);
-    
-                    if (!$value['price'] || (float)$value['price'] < 100 || mb_strpos(mb_strtolower($value['products']), 'доплата') !== false) return;
+                    
+                    if ($this->isKinezio && mb_strpos(mb_strtolower($value['products']), 'консультация') !== false) return;
+                    
+                    if (!$value['Email'] || !$value['price'] || (float)$value['price'] < 100 || mb_strpos(mb_strtolower($value['products']), 'доплата') !== false) return;
     
                     if ($isDuplicate) return;
     
@@ -649,7 +687,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                     'add_time' => now(),
                 ];
                 
-                if ($this->isKochfit) {
+                if ($this->isKochfit || $this->isKinezio) {
                     unset($data['landing_page']);
                 }
                 $this->marketing_history->insert($data);
@@ -728,6 +766,7 @@ class UpdateFromGoogleSpreadsheet extends Command
     {
         $this->blogger = $this->argument('blogger');
         $this->isKochfit = $this->blogger === 'kochfit';
+        $this->isKinezio = $this->blogger === 'kinezio'; 
         
         if (!in_array($this->blogger, $this->bloggerList)) {
             $this->error('Неверный блогер');
@@ -746,6 +785,7 @@ class UpdateFromGoogleSpreadsheet extends Command
         $this->marketing_channel = new ($namespace . 'MarketingChannel')();
         $this->marketing_history = new ($namespace . 'MarketingHistory')();
         $this->crm_history = new ($namespace . 'CrmHistory')();
+        
         if ($this->isKochfit) {
             $this->subscription = new ($namespace . 'Subscription')();
             $this->refund = new ($namespace . 'Refund')();
