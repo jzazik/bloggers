@@ -704,7 +704,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                     'landing_page' => $landing_page,
                 ];
                 
-                if ($this->isKochfit) {
+                if ($this->isKochfit || $this->isKinezio) {
                     unset($arr1['landing_page']);
                 }
 
