@@ -184,15 +184,9 @@ class UpdateFromGoogleSpreadsheet extends Command
             if (mb_strpos(mb_strtolower($products), 'активная') !== false) {
                 return 'Активная беременность';
             }
-                         
-            if (mb_strpos(mb_strtolower($products), 'фитнес тур') !== false) {
-                return 'Фитнес тур';
-            }
-                         
-            if (mb_strpos(mb_strtolower($products), 'архив') !== false) {
-                return 'Архив';
-            }
-            
+
+            return 'Архив';
+
         } else {
             if (mb_strpos(mb_strtolower($products), 'силовой') !== false) {
                 return 'Силовой';
