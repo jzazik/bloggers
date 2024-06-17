@@ -454,7 +454,7 @@ class UpdateFromGoogleSpreadsheet extends Command
             } catch (\Exception $e) {
                 Log::error($e->getMessage());
                 $this->errors++;
-                $this->error_details[] = ['строка в файле' => $key + 1, 'error' => $e->getMessage()];
+                $this->error_details[] = ['строка в файле' => $key + 1, 'error' => $e->getMessage(), 'track' => $e->getTraceAsString()];
             }
             
             
@@ -647,7 +647,7 @@ class UpdateFromGoogleSpreadsheet extends Command
             $landing_page = $value['landing_page'] ?? null;
 
 
-            DB::transaction(function () use ($value, $actualDate, $channel, $landing_page) {
+            DB::connection($this->blogger)->transaction(function () use ($value, $actualDate, $channel, $landing_page) {
                 
                 $impressions = $this->strToInt($value['impressions']);
                 $visits = $this->strToInt($value['clicks']);
