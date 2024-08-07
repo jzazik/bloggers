@@ -482,14 +482,14 @@ class UpdateFromGoogleSpreadsheet extends Command
                 $table = '';
                 if (mb_strpos(mb_strtolower($value['Type']), 'регулярная оплата') !== false
                     && mb_strpos(mb_strtolower($value['Url']), 'kochfit.ru') !== false
-                    && mb_strpos(mb_strtolower($value['Status']), 'завершена') !== false
+                    && mb_strpos(mb_strtolower($value['Status']), 'completed') !== false
                 ) {
                     $table = 'subscriptions';
                 }
 
                 if (mb_strpos(mb_strtolower($value['Type']), 'возврат') !== false
                     && mb_strpos(mb_strtolower($value['Url']), 'kochfit.ru') !== false
-                    && mb_strpos(mb_strtolower($value['Status']), 'завершена') !== false
+                    && mb_strpos(mb_strtolower($value['Status']), 'completed') !== false
                 ) {
                     $table = 'refunds';
                 }
@@ -502,7 +502,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                 ]);
 
                 $action_date = $value['Confirm date/time'] ? Carbon::parse($value['Confirm date/time'])->toDateTimeString() : null;
-                $sum = (int)$value['Summ'];
+                $sum = abs((int)str_replace(',', '.', $value['Summ']));
                 
                 if (($table === 'subscriptions' &&
                     DB::connection($this->blogger)
