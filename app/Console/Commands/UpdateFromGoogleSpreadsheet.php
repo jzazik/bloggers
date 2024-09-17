@@ -472,8 +472,6 @@ class UpdateFromGoogleSpreadsheet extends Command
         
         $maxSubscriptionRow = $this->subscription->max('row_num') ?? 0;
         
-        echo 'возвраты';
-        
         foreach ($values as $key => $value) {
             if ($key <= $maxSubscriptionRow) continue;
             
