@@ -495,14 +495,16 @@ class UpdateFromGoogleSpreadsheet extends Command
                 }
                 
                 if (!$table) continue;
-                if (abs($value['Summ']) < 100 || !$value['Summ']) continue;
+                
+                $sum = abs((int)str_replace(',', '.', $value['Summ']));
+
+                if ( !$value['Summ'] || $sum < 100) continue;
                 
                 $customer = $this->customer->firstOrCreate([
                     'email' => strtolower($value['E-Mail'])
                 ]);
 
                 $action_date = $value['Confirm date/time'] ? Carbon::parse($value['Confirm date/time'])->toDateTimeString() : null;
-                $sum = abs((int)str_replace(',', '.', $value['Summ']));
                 
                 if (($table === 'subscriptions' &&
                     DB::connection($this->blogger)
