@@ -809,12 +809,12 @@ class UpdateFromGoogleSpreadsheet extends Command
         }
         
         
-//        $this->updateMarketing();
-//        $this->updateFollowers();
-//        $this->updateCRM();
+        $this->updateMarketing();
+        $this->updateFollowers();
+        $this->updateCRM();
         if ($this->isKochfit) {
             $this->updateSubscriptions();
-//            $this->updateInstallments();
+            $this->updateInstallments();
         }
 
 
