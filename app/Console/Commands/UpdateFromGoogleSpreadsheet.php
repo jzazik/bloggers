@@ -552,8 +552,6 @@ class UpdateFromGoogleSpreadsheet extends Command
                     $data['subscription_amount'] = $sum;
                 }
                 
-                dd($data);
-                
                 DB::connection($this->blogger)->table($table)->insert($data);
                 
 
