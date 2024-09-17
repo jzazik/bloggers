@@ -472,6 +472,8 @@ class UpdateFromGoogleSpreadsheet extends Command
         
         $maxSubscriptionRow = $this->subscription->max('row_num') ?? 0;
         
+        echo 'возвраты';
+        
         foreach ($values as $key => $value) {
             if ($key <= $maxSubscriptionRow) continue;
             
@@ -495,7 +497,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                 }
                 
                 if (!$table) continue;
-                if ($value['Summ'] < 100 || !$value['Summ']) continue;
+                if (abs($value['Summ']) < 100 || !$value['Summ']) continue;
                 
                 $customer = $this->customer->firstOrCreate([
                     'email' => strtolower($value['E-Mail'])
@@ -550,6 +552,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                     $data['subscription_amount'] = $sum;
                 }
                 
+                dd($data);
                 
                 DB::connection($this->blogger)->table($table)->insert($data);
                 
@@ -806,12 +809,12 @@ class UpdateFromGoogleSpreadsheet extends Command
         }
         
         
-        $this->updateMarketing();
-        $this->updateFollowers();
-        $this->updateCRM();
+//        $this->updateMarketing();
+//        $this->updateFollowers();
+//        $this->updateCRM();
         if ($this->isKochfit) {
             $this->updateSubscriptions();
-            $this->updateInstallments();
+//            $this->updateInstallments();
         }
 
 
