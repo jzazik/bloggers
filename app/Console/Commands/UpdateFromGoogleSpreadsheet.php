@@ -31,6 +31,8 @@ class UpdateFromGoogleSpreadsheet extends Command
     private string $blogger;
     private bool $isKochfit;
     private bool $isKinezio;
+    private bool $isPopovich;
+
 
     private array $bloggerList = [
         'popovich',
@@ -750,6 +752,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                 'dzen' => $value['dzen'] === '' ? null : $this->strToInt($value['dzen']),
                 'app' => $value['app'] === '' ? null : $this->strToInt($value['app']),
                 'advert_tg_bot' => $value['advert_tg_bot'] === '' ? null : $this->strToInt($value['advert_tg_bot']),
+                ...($this->isPopovich ? ['yandex_music' => $value['yandex_music'] === '' ? null : $this->strToInt($value['yandex_music'])] : [])
             ]);
 
         }
@@ -762,6 +765,7 @@ class UpdateFromGoogleSpreadsheet extends Command
         $this->blogger = $this->argument('blogger');
         $this->isKochfit = $this->blogger === 'kochfit';
         $this->isKinezio = $this->blogger === 'kinezio'; 
+        $this->isPopovich = $this->blogger === 'popovich'; 
         
         if (!in_array($this->blogger, $this->bloggerList)) {
             $this->error('Неверный блогер');
