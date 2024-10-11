@@ -528,9 +528,9 @@ class UpdateFromGoogleSpreadsheet extends Command
                 
                 $product = $this->product->firstOrCreate([
                     'product_name' => $value['Purpose'],
-                    'product_type' => self::getProductTypeForSubscription($value['Purpose']),
-                    'product_form' => self::getProductFormForSubscription($value['Purpose'], $table === 'refunds'),
-                    'product_length' => self::getProductLength($value['Purpose']),
+                    'product_type' => $this->getProductTypeForSubscription($value['Purpose']),
+                    'product_form' => $this->getProductFormForSubscription($value['Purpose'], $table === 'refunds'),
+                    'product_length' => $this->getProductLength($value['Purpose']),
                     'product_price' => $sum,
                 ]);
 
