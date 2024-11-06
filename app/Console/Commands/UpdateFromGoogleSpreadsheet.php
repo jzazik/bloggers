@@ -95,6 +95,35 @@ class UpdateFromGoogleSpreadsheet extends Command
         return $refund ? 'База' : 'Подписка';
 
     }
+    
+    private function getEmail($email): string
+    {
+        $errors = [
+            ['.con', '.com'],
+            ['.ry', '.ru'],
+            ['@inbo.ru', '@inbox.ru'],
+            ['@yande.ru', '@yandex.ru'],
+            ['@mai.ru', '@mail.ru'],
+            ['@gmai.com', '@gmail.com'],
+            ['@ramble.ru', '@rambler.ru'],
+            ['@iclou.com', '@icloud.com'],
+            ['@outloo.com', '@outlook.com'],
+            ['@hmail.com', '@gmail.com'],
+            ['@yangex.ru', '@yandex.ru'],
+            ['@maul.ru', '@mail.ru'],
+            ['@gmil.com', '@gmail.com'],
+            ['@yandex.com', '@yandex.ru'],
+        ];
+        
+        $email = strtolower($email);
+        
+        foreach ($errors as $error) {
+            $email = str_replace($error[0], $error[1], $email);
+        }
+        
+        
+        return $email;
+    }
 
     private function getProductTypeForSubscription($products): string
     {
@@ -333,8 +362,9 @@ class UpdateFromGoogleSpreadsheet extends Command
             
             $this->info('CRM Row ' . $key);
 
+            $email = $this->getEmail($value['Email']);
             $crmHistory = $this->crm_history
-                ->where('email', $value['Email'])
+                ->where('email', $email)
                 ->where('price', 'LIKE', $value['price'])
                 ->where('sent', $value['sent'] ? Carbon::parse($value['sent'])->toDateTimeString() : null);
 
@@ -342,7 +372,7 @@ class UpdateFromGoogleSpreadsheet extends Command
 
             try {
                 
-                DB::connection($this->blogger)->transaction(function () use ($crmHistory, $isDuplicate, $value, $key) {
+                DB::connection($this->blogger)->transaction(function () use ($crmHistory, $isDuplicate, $value, $key, $email) {
     
                     $formName = $this->blogger === 'kochfit' ? $value['Название формы'] : $value['Form name'];
                     $currency = $this->blogger === 'kochfit' ? $value['Валюта'] : $value['Currency'];
@@ -351,7 +381,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                     $this->crm_history->create([
                         'add_time' => now(),
                         'name' => $value['Name'],
-                        'email' => $value['Email'],
+                        'email' => $email,
                         'phone' => $value['Phone'],
                         'paymentsystem' => $value['paymentsystem'],
                         'orderid' => $value['orderid'],
@@ -382,13 +412,13 @@ class UpdateFromGoogleSpreadsheet extends Command
                     
                     if ($this->isKinezio && mb_strpos(mb_strtolower($value['products']), 'консультация') !== false) return;
                     
-                    if (!$value['Email'] || !$value['price'] || (float)$value['price'] < 100 || mb_strpos(mb_strtolower($value['products']), 'доплата') !== false) return;
+                    if (!$email || !$value['price'] || (float)$value['price'] < 100 || mb_strpos(mb_strtolower($value['products']), 'доплата') !== false) return;
     
                     if ($isDuplicate) return;
     
                     $customer = $this->customer::updateOrCreate(
                         [
-                            'email' => strtolower($value['Email'])
+                            'email' => $email
                         ],
                         [
                             'customer_name' => $value['Name'],
@@ -502,8 +532,10 @@ class UpdateFromGoogleSpreadsheet extends Command
 
                 if ( !$value['Summ'] || $sum < 100) continue;
                 
+                $email = $this->getEmail($value['E-Mail']);
+
                 $customer = $this->customer->firstOrCreate([
-                    'email' => strtolower($value['E-Mail'])
+                    'email' => $email
                 ]);
 
                 $action_date = $value['Confirm date/time'] ? Carbon::parse($value['Confirm date/time'])->toDateTimeString() : null;
@@ -587,8 +619,9 @@ class UpdateFromGoogleSpreadsheet extends Command
 
             try {
 
+                $email = $this->getEmail($value['email']);
                 $customer = $this->customer->firstOrCreate([
-                    'email' => strtolower($value['email'])
+                    'email' => $email
                 ]);
                 
                 $amount = (int)($value['installment_amount']);
