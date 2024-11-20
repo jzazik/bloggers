@@ -197,6 +197,10 @@ class UpdateFromGoogleSpreadsheet extends Command
             if (mb_strpos(mb_strtolower($products), 'тренировки') !== false) {
                 return 'Тренировки';
             }
+
+            if (mb_strpos(mb_strtolower($products), 'все пробные курсы') !== false) {
+                return 'Все пробные курсы';
+            }
         } else if ($this->isKochfit) {
 
             if (mb_strpos(mb_strtolower($products), 'красота и здоровье') !== false 
@@ -256,7 +260,10 @@ class UpdateFromGoogleSpreadsheet extends Command
     {
         if ($this->blogger === 'kochfit') {
             $separator = '-';
-        } else {
+        } else if ($this->isKinezio) {
+            $separator = mb_strpos($products, '/') !== false ? '/' : '- 1';
+        }
+        else {
             $separator = mb_strpos($products, '/') !== false ? '/' : '-';
         }
         
