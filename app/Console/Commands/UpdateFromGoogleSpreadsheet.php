@@ -120,6 +120,14 @@ class UpdateFromGoogleSpreadsheet extends Command
         foreach ($errors as $error) {
             $email = str_replace($error[0], $error[1], $email);
         }
+
+        $email = filter_var($email, FILTER_SANITIZE_EMAIL);
+
+        // Remove double dots
+        $email = preg_replace('/\.\.+/', '.', $email);
+
+        // Trim spaces
+        $email = trim($email);
         
         
         return $email;
@@ -169,13 +177,13 @@ class UpdateFromGoogleSpreadsheet extends Command
     
         if ($this->isKinezio) {
             if (mb_strpos(mb_strtolower($products), 'фундамент') !== false
-                && mb_strpos(mb_strtolower($products), 'с обратной связью') !== false) {
-                return 'Фундамент с обратной связью';
+                && (mb_strpos(mb_strtolower($products), 'с обратной связью') !== false || mb_strpos(mb_strtolower($products), 'премиум') !== false)) {
+                return 'Фундамент Премиум';
             }
             
             if (mb_strpos(mb_strtolower($products), 'фундамент') !== false
-                && mb_strpos(mb_strtolower($products), 'без обратной связи') !== false) {
-                return 'Фундамент без обратной связи';
+                && (mb_strpos(mb_strtolower($products), 'без обратной связи') !== false || mb_strpos(mb_strtolower($products), 'базовый') !== false)) {
+                return 'Фундамент Базовый';
             }
             
             if (mb_strpos(mb_strtolower($products), 'анатомия') !== false) {
@@ -184,6 +192,10 @@ class UpdateFromGoogleSpreadsheet extends Command
             
             if (mb_strpos(mb_strtolower($products), 'пробный') !== false) {
                 return 'Пробный';
+            }
+            
+            if (mb_strpos(mb_strtolower($products), 'тренировки') !== false) {
+                return 'Тренировки';
             }
         } else if ($this->isKochfit) {
 
