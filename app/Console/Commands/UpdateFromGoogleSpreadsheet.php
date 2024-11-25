@@ -98,29 +98,8 @@ class UpdateFromGoogleSpreadsheet extends Command
     
     private function getEmail($email): string
     {
-        $errors = [
-            ['.con', '.com'],
-            ['.ry', '.ru'],
-            ['@inbo.ru', '@inbox.ru'],
-            ['@yande.ru', '@yandex.ru'],
-            ['@mai.ru', '@mail.ru'],
-            ['@gmai.com', '@gmail.com'],
-            ['@ramble.ru', '@rambler.ru'],
-            ['@iclou.com', '@icloud.com'],
-            ['@outloo.com', '@outlook.com'],
-            ['@hmail.com', '@gmail.com'],
-            ['@yangex.ru', '@yandex.ru'],
-            ['@maul.ru', '@mail.ru'],
-            ['@gmil.com', '@gmail.com'],
-            ['@yandex.com', '@yandex.ru'],
-        ];
-        
         $email = strtolower($email);
         
-        foreach ($errors as $error) {
-            $email = str_replace($error[0], $error[1], $email);
-        }
-
         $email = filter_var($email, FILTER_SANITIZE_EMAIL);
 
         // Remove double dots
@@ -128,7 +107,6 @@ class UpdateFromGoogleSpreadsheet extends Command
 
         // Trim spaces
         $email = trim($email);
-        
         
         return $email;
     }
