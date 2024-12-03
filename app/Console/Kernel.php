@@ -12,9 +12,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-         $schedule->command('app:update-from-google-spreadsheet popovich')->hourly();
-         $schedule->command('app:update-from-google-spreadsheet kochfit')->hourly();
-         $schedule->command('app:update-from-google-spreadsheet kinezio')->hourly();
+         $schedule->command('app:update-from-google-spreadsheet popovich')->everyFiveMinutes();
+         $schedule->command('app:update-from-google-spreadsheet kochfit')->everyFiveMinutes();
+         $schedule->command('app:update-from-google-spreadsheet kinezio')->everyFiveMinutes();
     }
 
     /**
