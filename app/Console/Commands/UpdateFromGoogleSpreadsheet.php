@@ -823,7 +823,7 @@ class UpdateFromGoogleSpreadsheet extends Command
         
         $updateLog = $this->updateLog::create([
             'started_at' => Carbon::now(),
-            'next_start_at' => Carbon::now()->addHour()->startOfHour()
+            'next_start_at' => Carbon::now()->addMinutes(5)
         ]);
         
         $customersCount = $this->customer->count();
