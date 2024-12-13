@@ -27,6 +27,8 @@ class UpdateFromGoogleSpreadsheet extends Command
     private Model $subscription;
     private Model $refund;
     private Model $installment;
+    private Model $paypal;
+    private Model $tocard;
     private Model $crm_history;
     private string $blogger;
     private bool $isKochfit;
@@ -78,23 +80,9 @@ class UpdateFromGoogleSpreadsheet extends Command
             return 'Продление';
         }
         
-        return 'База';
+        return 'Покупка';
         
    }
-
-    private function getProductFormForSubscription($products, $refund = false): string
-    {
-        if (mb_strpos(mb_strtolower($products), 'подписка') !== false) {
-            return 'Подписка';
-        }
-
-        if (mb_strpos(mb_strtolower($products), 'продление') !== false) {
-            return 'Продление';
-        }
-        
-        return $refund ? 'База' : 'Подписка';
-
-    }
     
     private function getEmail($email): string
     {
@@ -110,45 +98,7 @@ class UpdateFromGoogleSpreadsheet extends Command
         
         return $email;
     }
-
-    private function getProductTypeForSubscription($products): string
-    {
-
-        if ($this->isKochfit) {
-
-            if (mb_strpos(mb_strtolower($products), 'лайт') !== false || mb_strpos(mb_strtolower($products), 'тандарт') !== false) {
-                return 'Красота и здоровье Стандарт';
-            }
-
-            if (mb_strpos(mb_strtolower($products), 'премиум') !== false) {
-                return 'Красота и здоровье Премиум';
-            }
-
-            if (mb_strpos(mb_strtolower($products), 'тестовая неделя') !== false) {
-                return 'Красота и здоровье Тестовая неделя';
-            }
-
-            if (mb_strpos(mb_strtolower($products), 'мтд') !== false) {
-                return 'МТД и дыхание';
-            }
-
-            if (mb_strpos(mb_strtolower($products), 'восстановление') !== false) {
-                return 'Восстановление после родов';
-            }
-
-            if (mb_strpos(mb_strtolower($products), 'активная') !== false) {
-                return 'Активная беременность';
-            }
-
-            if (mb_strpos(mb_strtolower($products), 'фитнес тур') !== false) {
-                return 'Фитнес тур';
-            }
-
-        }
-
-        return '';
-
-    }
+    
     
     private function getProductType($products): string
     {
@@ -181,20 +131,15 @@ class UpdateFromGoogleSpreadsheet extends Command
             }
         } else if ($this->isKochfit) {
 
-            if (mb_strpos(mb_strtolower($products), 'красота и здоровье') !== false 
-                && (
-                    mb_strpos(mb_strtolower($products), 'лайт') || mb_strpos(mb_strtolower($products), 'тандарт')
-                )) {
+            if (mb_strpos(mb_strtolower($products), 'лайт') !== false || mb_strpos(mb_strtolower($products), 'тандарт') !== false) {
                 return 'Красота и здоровье Стандарт';
             }
 
-            if (mb_strpos(mb_strtolower($products), 'красота и здоровье') !== false 
-                && mb_strpos(mb_strtolower($products), 'премиум') !== false) {
+            if (mb_strpos(mb_strtolower($products), 'премиум') !== false) {
                 return 'Красота и здоровье Премиум';
             }
             
-            if (mb_strpos(mb_strtolower($products), 'красота и здоровье') !== false
-                && mb_strpos(mb_strtolower($products), 'тестовая неделя') !== false) {
+            if (mb_strpos(mb_strtolower($products), 'тестовая') !== false) {
                 return 'Красота и здоровье Тестовая неделя';
             }
             
@@ -208,6 +153,10 @@ class UpdateFromGoogleSpreadsheet extends Command
                        
             if (mb_strpos(mb_strtolower($products), 'активная') !== false) {
                 return 'Активная беременность';
+            }
+
+            if (mb_strpos(mb_strtolower($products), 'фитнес тур') !== false) {
+                return 'Фитнес тур';
             }
 
             return 'Архив';
@@ -260,6 +209,15 @@ class UpdateFromGoogleSpreadsheet extends Command
         return (int)trim(explode('-', $afterSlash)[0]);
     }
     
+    private function getProductMeasure($products): string
+    {
+        if (mb_strpos(mb_strtolower($products), 'тестовая неделя') !== false) {
+            return 'day';
+        }
+        
+        return 'month';
+    }
+    
 
     private function getProductLength($products): string
     {
@@ -283,10 +241,10 @@ class UpdateFromGoogleSpreadsheet extends Command
             
             $numbers = preg_replace('/[^0-9]/', '', $products);
             
-            if ($numbers) return 30 * $numbers;
+            if ($numbers) return $numbers;
 
             if (mb_strpos(mb_strtolower($products), 'годовой') !== false) {
-                return '360';
+                return '12';
             }
 
             if (mb_strpos(mb_strtolower($products), 'ведение тренировки') !== false ||
@@ -302,7 +260,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                 return '7';
             }
 
-            return '30';
+            return '1';
 
         }
         
@@ -433,6 +391,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                     
                     if ($this->isKochfit) {
                         $data['product_form'] =  self::getProductForm($value['products']);
+                        $data['length_measure'] = self::getProductMeasure($value['products']);
                     }
                     
                     $product = $this->product::updateOrCreate($data);
@@ -557,9 +516,10 @@ class UpdateFromGoogleSpreadsheet extends Command
                 
                 $product = $this->product->firstOrCreate([
                     'product_name' => $value['Purpose'],
-                    'product_type' => $this->getProductTypeForSubscription($value['Purpose']),
-                    'product_form' => $this->getProductFormForSubscription($value['Purpose'], $table === 'refunds'),
+                    'product_type' => $this->getProductType($value['Purpose']),
+                    'product_form' => $this->getProductForm($value['Purpose']),
                     'product_length' => $this->getProductLength($value['Purpose']),
+                    'length_measure' => $this->getProductMeasure($value['Purpose']),
                     'product_price' => $sum,
                 ]);
 
@@ -601,18 +561,23 @@ class UpdateFromGoogleSpreadsheet extends Command
     {
 
         $sheet = Sheets::spreadsheet(env('INSTALLMENT_SPREADSHEET_ID_' . strtoupper($this->blogger)));
-        $sheet = $sheet->sheet('Sheet1');
+        $sheet = $sheet->sheet('installments');
 
+        $this->updatePayments('installment', $sheet);
+    }
+    
+    private function updatePayments($type, $sheet)
+    {
         $rows = $sheet->get();
         $header = $rows->pull(0);
         $values = Sheets::collection(header: $header, rows: $rows);
 
-        $maxinstallmentRow = $this->installment->max('row_num') ?? 0;
+        $maxRow = $this->$type->max('row_num') ?? 0;
 
         foreach ($values as $key => $value) {
-            if ($key <= $maxinstallmentRow) continue;
+            if ($key <= $maxRow) continue;
 
-            $this->info('Installments Row ' . $key);
+            $this->info($type . ' Row ' . $key);
 
             try {
 
@@ -620,34 +585,37 @@ class UpdateFromGoogleSpreadsheet extends Command
                 $customer = $this->customer->firstOrCreate([
                     'email' => $email
                 ]);
-                
-                $amount = (int)($value['installment_amount']);
-                $dateTime = $value['installment_date'] ? Carbon::parse($value['installment_date'])->toDateTimeString() : null;
 
-                if ($this->installment
+                $amount = (int)($value[$type . '_amount']);
+                $dateTime = $value[$type . '_date'] ? Carbon::parse($value[$type . '_date'])->toDateTimeString() : null;
+
+                if ($this->$type
                     ->where('customer_id', $customer->customer_id)
-                    ->where('installment_date', $dateTime)
-                    ->where('installment_amount', $amount)
+                    ->where($type . '_date', $dateTime)
+                    ->where($type . '_amount', $amount)
                     ->exists()) continue;
 
                 $product = $this->product->firstOrCreate([
-                    'product_name' => $value['product'],
-                    'product_type' => self::getProductTypeForSubscription($value['product']),
-                    'product_form' => self::getProductFormForSubscription($value['product'], true),
-                    'product_length' => self::getProductLength($value['product'])
+                    'product_type' => $this->getProductType($value['product']),
+                    'product_form' => $this->getProductForm($value['product']),
+                    'product_length' => $this->getProductLength($value['product']),
+                    'length_measure' => $this->getProductMeasure($value['product']),
+                    'product_price' => $value[$type . '_amount'],
+                ], [
+                    'product_name' => $value['product']
                 ]);
 
 
                 $data = [
                     'customer_id' => $customer->customer_id,
-                    'installment_date' => $dateTime,
-                    'installment_amount' => $amount,
+                    $type . '_date' => $dateTime,
+                    $type . '_amount' => $amount,
                     'product_id' => $product->product_id,
                     'currency' => $value['currency'],
                     'row_num' => $key
                 ];
 
-                $this->installment->create($data);
+                $this->$type->create($data);
 
 
             } catch (\Exception $e) {
@@ -659,6 +627,22 @@ class UpdateFromGoogleSpreadsheet extends Command
 
 
         }
+    }
+    
+    private function updatePaypal()
+    {
+        $sheet = Sheets::spreadsheet(env('INSTALLMENT_SPREADSHEET_ID_' . strtoupper($this->blogger)));
+        $sheet = $sheet->sheet('paypal');
+        
+        $this->updatePayments('paypal', $sheet);
+    }
+    
+    private function updateTocard()
+    {
+        $sheet = Sheets::spreadsheet(env('INSTALLMENT_SPREADSHEET_ID_' . strtoupper($this->blogger)));
+        $sheet = $sheet->sheet('tocard');
+        
+        $this->updatePayments('tocard', $sheet);
     }
     
     private function updateMarketing()
@@ -819,6 +803,8 @@ class UpdateFromGoogleSpreadsheet extends Command
             $this->subscription = new ($namespace . 'Subscription')();
             $this->refund = new ($namespace . 'Refund')();
             $this->installment = new ($namespace . 'Installment')();
+            $this->paypal = new ($namespace . 'Paypal')();
+            $this->tocard = new ($namespace . 'Tocard')();
         }
         
         $updateLog = $this->updateLog::create([
@@ -847,6 +833,8 @@ class UpdateFromGoogleSpreadsheet extends Command
         if ($this->isKochfit) {
             $this->updateSubscriptions();
             $this->updateInstallments();
+            $this->updatePaypal();
+            $this->updateTocard();
         }
 
 
