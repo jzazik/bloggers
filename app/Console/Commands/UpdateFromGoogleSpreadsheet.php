@@ -468,7 +468,7 @@ class UpdateFromGoogleSpreadsheet extends Command
             try {
                 
                 $table = '';
-                if (mb_strpos(mb_strtolower($value['Type']), 'регулярная оплата') !== false
+                if (mb_strpos(mb_strtolower($value['Type']), 'оплата') !== false
                     && mb_strpos(mb_strtolower($value['Url']), 'kochfit.ru') !== false
                     && mb_strpos(mb_strtolower($value['Status']), 'completed') !== false
                 ) {
@@ -488,7 +488,7 @@ class UpdateFromGoogleSpreadsheet extends Command
 
                 if ( !$value['Summ'] || $sum < 100) continue;
                 
-                $email = $this->getEmail($value['E-Mail']);
+                $email = $this->getEmail($value['Customer']);
 
                 $customer = $this->customer->firstOrCreate([
                     'email' => $email
@@ -522,6 +522,16 @@ class UpdateFromGoogleSpreadsheet extends Command
                     'length_measure' => $this->getProductMeasure($value['Purpose']),
                     'product_price' => $sum,
                 ]);
+                
+                if ($table === 'subscriptions' && $this->transaction
+                    ->where('customer_id', $customer->customer_id)
+                    ->where('product_id', $product->product_id)
+                    ->where('transaction_date', $action_date)
+                    ->where('price', $sum)
+                    ->exists()
+                ) {
+                    continue;
+                }
 
 
                 $data = [
@@ -533,7 +543,6 @@ class UpdateFromGoogleSpreadsheet extends Command
                     'status' => $value['Status'],
                     'row_num' => $key
                 ];
-                
                 
                 if ($table === 'refunds') {
                     $data['refund_date'] = $action_date;
@@ -825,11 +834,12 @@ class UpdateFromGoogleSpreadsheet extends Command
             $installmentsCount = $this->installment->count();
             $refundsCount = $this->refund->count();
         }
-        
+
+
+        $this->updateCRM(); // должно идти первым
         
         $this->updateMarketing();
         $this->updateFollowers();
-        $this->updateCRM();
         if ($this->isKochfit) {
             $this->updateSubscriptions();
             $this->updateInstallments();
