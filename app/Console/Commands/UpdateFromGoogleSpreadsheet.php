@@ -526,7 +526,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                 if ($table === 'subscriptions' && $this->transaction
                     ->where('customer_id', $customer->customer_id)
                     ->where('product_id', $product->product_id)
-                    ->where('transaction_date', $action_date)
+                    ->where(DB::raw('DATE(transaction_date)'), Carbon::parse($action_date)->toDateString())
                     ->where('price', $sum)
                     ->exists()
                 ) {
