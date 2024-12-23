@@ -833,6 +833,8 @@ class UpdateFromGoogleSpreadsheet extends Command
             $subscriptionsCount = $this->subscription->count();
             $installmentsCount = $this->installment->count();
             $refundsCount = $this->refund->count();
+            $paypalCount = $this->paypal->count();
+            $tocardCount = $this->tocard->count();
         }
 
 
@@ -860,6 +862,8 @@ class UpdateFromGoogleSpreadsheet extends Command
             $subscriptionsCountNew = $this->subscription->count();
             $installmentsCountNew = $this->installment->count();
             $refundsCountNew = $this->refund->count();
+            $paypalCountNew = $this->paypal->count();
+            $tocardCountNew = $this->tocard->count();
         }
         
         $data = [
@@ -879,6 +883,8 @@ class UpdateFromGoogleSpreadsheet extends Command
             $data['subscriptions_new_rows'] = $subscriptionsCountNew - $subscriptionsCount;
             $data['installments_new_rows'] = $installmentsCountNew - $installmentsCount;
             $data['refunds_new_rows'] = $refundsCountNew - $refundsCount;
+            $data['paypal_new_rows'] = $paypalCountNew - $paypalCount;
+            $data['tocard_new_rows'] = $tocardCountNew - $tocardCount;
         }
 
         $updateLog->update($data);
