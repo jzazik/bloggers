@@ -515,12 +515,13 @@ class UpdateFromGoogleSpreadsheet extends Command
                 }
                 
                 $product = $this->product->firstOrCreate([
-                    'product_name' => $value['Purpose'],
                     'product_type' => $this->getProductType($value['Purpose']),
                     'product_form' => $this->getProductForm($value['Purpose']),
                     'product_length' => $this->getProductLength($value['Purpose']),
                     'length_measure' => $this->getProductMeasure($value['Purpose']),
                     'product_price' => $sum,
+                ], [
+                    'product_name' => $value['Purpose'],
                 ]);
                 
                 if ($table === 'subscriptions' && $this->transaction
