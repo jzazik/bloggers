@@ -14,4 +14,13 @@ class Product extends Model
     protected $primaryKey = 'product_id';
     
     protected $guarded = ['product_id'];
+
+    public function getProducts($data)
+    {
+        $products = [];
+
+        $products[] = self::firstOrCreate($data);
+
+        return $products;
+    }
 }

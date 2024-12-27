@@ -379,7 +379,21 @@ class UpdateFromGoogleSpreadsheet extends Command
                             'customer_name' => $value['Name'],
                             'phone' => self::processPhone($value['Phone']),
                         ]);
-    
+
+                    $utm = array_filter([
+                        'utm_source' => $value['utm_source'],
+                        'utm_medium' => $value['utm_medium'],
+                        'utm_campaign' => $value['utm_campaign'],
+                        'utm_term' => $value['utm_term'],
+                        'utm_content' => $value['utm_content'],
+                    ]);
+
+                    if ($utm) {
+                        $utmParam = $this->utmParam::updateOrCreate($utm);
+                    }
+
+                    $saleNumber = self::getSaleNumber($value['products']);
+                    
                     $productName = $this->getProductName($value['products']);
     
                     $data = [
@@ -393,24 +407,8 @@ class UpdateFromGoogleSpreadsheet extends Command
                         $data['product_form'] =  self::getProductForm($value['products']);
                         $data['length_measure'] = self::getProductMeasure($value['products']);
                     }
-                    
-                    $product = $this->product::updateOrCreate($data);
-    
-                    $utm = array_filter([
-                        'utm_source' => $value['utm_source'],
-                        'utm_medium' => $value['utm_medium'],
-                        'utm_campaign' => $value['utm_campaign'],
-                        'utm_term' => $value['utm_term'],
-                        'utm_content' => $value['utm_content'],
-                    ]);
-    
-                    if ($utm) {
-                        $utmParam = $this->utmParam::updateOrCreate($utm);
-                    }
-    
-                    $saleNumber = self::getSaleNumber($value['products']);
-    
-                    $data = [
+
+                    $transactionData = [
                         'form_id' => $value['formid'],
                         'sale_number' => $saleNumber,
                         'form_name' => $formName,
@@ -420,22 +418,22 @@ class UpdateFromGoogleSpreadsheet extends Command
                         'subtotal' => (int)$value['subtotal'],
                         'promocode' => $value['promocode'],
                         'discount' => (int)$value['discount'],
-                        'price' => (int)$value['price'],
                         'currency' => $currency,
                         'payment_status' => $paymentStatus,
                         'referer' => $value['referer'],
                         'transaction_date' => Carbon::parse($value['sent'])->toDateTimeString(),
                         'customer_id' => $customer->customer_id,
-                        'product_id' => $product->product_id,
                         'utm_id' => isset($utmParam) ? $utmParam->utm_id : null,
                     ];
-    
-                    if ($this->isKochfit) {
-                        unset($data['sale_number']);
-                    }
-    
-                    $this->transaction::create($data);
+
+                    $products = $this->product->getProducts($data);
                     
+                    foreach ($products as $product) {
+                        $transactionData['price'] = $product->product_price;
+                        $transactionData['product_id'] = $product->product_id;
+                        
+                        $this->transaction::create($transactionData);
+                    }
                     
                 });
 
@@ -514,46 +512,51 @@ class UpdateFromGoogleSpreadsheet extends Command
                     continue;
                 }
                 
-                $product = $this->product->firstOrCreate([
+                $data = [
                     'product_type' => $this->getProductType($value['Purpose']),
                     'product_form' => $this->getProductForm($value['Purpose']),
                     'product_length' => $this->getProductLength($value['Purpose']),
                     'length_measure' => $this->getProductMeasure($value['Purpose']),
                     'product_price' => $sum,
-                ], [
                     'product_name' => $value['Purpose'],
-                ]);
-                
-                if ($table === 'subscriptions' && $this->transaction
-                    ->where('customer_id', $customer->customer_id)
-                    ->where('product_id', $product->product_id)
-                    ->whereBetween('transaction_date', [Carbon::parse($action_date)->subHour()->toDateTimeString(), Carbon::parse($action_date)->addHour()->toDateTimeString()])
-                    ->where('price', $sum)
-                    ->exists()
-                ) {
-                    continue;
-                }
-
-
-                $data = [
-                    'customer_id' => $customer->customer_id,
-                    'currency' => $value['Currency'],
-                    'transaction_type' => $value['Type'],
-                    'product_id' => $product->product_id,
-                    'url' => $value['Url'],
-                    'status' => $value['Status'],
-                    'row_num' => $key
                 ];
-                
-                if ($table === 'refunds') {
-                    $data['refund_date'] = $action_date;
-                    $data['refund_amount'] = $sum;
-                } else {
-                    $data['subscription_date'] = $action_date;
-                    $data['subscription_amount'] = $sum;
+
+                $products = $this->product->getProducts($data);
+
+                foreach ($products as $product) {
+                    if ($table === 'subscriptions' && $this->transaction
+                            ->where('customer_id', $customer->customer_id)
+                            ->where('product_id', $product->product_id)
+                            ->whereBetween('transaction_date', [Carbon::parse($action_date)->subHour()->toDateTimeString(), Carbon::parse($action_date)->addHour()->toDateTimeString()])
+                            ->where('price', $sum)
+                            ->exists()
+                    ) {
+                        continue;
+                    }
+
+
+                    $transactionData = [
+                        'customer_id' => $customer->customer_id,
+                        'currency' => $value['Currency'],
+                        'transaction_type' => $value['Type'],
+                        'product_id' => $product->product_id,
+                        'url' => $value['Url'],
+                        'status' => $value['Status'],
+                        'row_num' => $key
+                    ];
+
+                    if ($table === 'refunds') {
+                        $transactionData['refund_date'] = $action_date;
+                        $transactionData['refund_amount'] = $sum;
+                    } else {
+                        $transactionData['subscription_date'] = $action_date;
+                        $transactionData['subscription_amount'] = $sum;
+                    }
+
+                    DB::connection($this->blogger)->table($table)->insert($transactionData);
+
                 }
                 
-                DB::connection($this->blogger)->table($table)->insert($data);
                 
 
             } catch (\Exception $e) {
@@ -605,27 +608,29 @@ class UpdateFromGoogleSpreadsheet extends Command
                     ->where($type . '_amount', $amount)
                     ->exists()) continue;
 
-                $product = $this->product->firstOrCreate([
+                $data = [
                     'product_type' => $this->getProductType($value['product']),
                     'product_form' => $this->getProductForm($value['product']),
                     'product_length' => $this->getProductLength($value['product']),
                     'length_measure' => $this->getProductMeasure($value['product']),
                     'product_price' => $value[$type . '_amount'],
-                ], [
                     'product_name' => $value['product']
-                ]);
-
-
-                $data = [
-                    'customer_id' => $customer->customer_id,
-                    $type . '_date' => $dateTime,
-                    $type . '_amount' => $amount,
-                    'product_id' => $product->product_id,
-                    'currency' => $value['currency'],
-                    'row_num' => $key
                 ];
 
-                $this->$type->create($data);
+                $products = $this->product->getProducts($data);
+
+                foreach ($products as $product) {
+                    $data = [
+                        'customer_id' => $customer->customer_id,
+                        $type . '_date' => $dateTime,
+                        $type . '_amount' => $amount,
+                        'product_id' => $product->product_id,
+                        'currency' => $value['currency'],
+                        'row_num' => $key
+                    ];
+
+                    $this->$type->create($data);
+                }
 
 
             } catch (\Exception $e) {
