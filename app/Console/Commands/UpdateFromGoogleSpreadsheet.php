@@ -366,9 +366,9 @@ class UpdateFromGoogleSpreadsheet extends Command
                     ]);
                     
                     if ($this->isKinezio && mb_strpos(mb_strtolower($value['products']), 'консультация') !== false) return;
-                    
+//                    dd(!$email , !$value['price'] , (float)$value['price'] < 100 , mb_strpos(mb_strtolower($value['products']), 'доплата') !== false);
                     if (!$email || !$value['price'] || (float)$value['price'] < 100 || mb_strpos(mb_strtolower($value['products']), 'доплата') !== false) return;
-    
+//                    dd(2);
                     if ($isDuplicate) return;
     
                     $customer = $this->customer::updateOrCreate(

@@ -76,7 +76,7 @@ class Product extends Model
         ];
     }
     
-    public  function getProducts($data)
+    public function getProducts($data)
     {
         unset($data['sale_number']);
 
@@ -92,7 +92,7 @@ class Product extends Model
         }
         
         if (!$packageProducts) {
-            $products[] = self::updateOrCreate(self::getCreateArrays($data));
+            $products[] = self::updateOrCreate(...self::getCreateArrays($data));
         }
 
         
@@ -105,7 +105,7 @@ class Product extends Model
                     $newProductData[$key] = $value;
                 }
 
-                $products[] = self::updateOrCreate(self::getCreateArrays($newProductData));
+                $products[] = self::updateOrCreate(...self::getCreateArrays($newProductData));
             }
         }
         
