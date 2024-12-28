@@ -415,7 +415,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                         'payment_id' => $value['paymentid'],
                         'subtotal' => $this->strToFloat($value['subtotal']),
                         'promocode' => $value['promocode'],
-                        'discount' => $value['discount'],
+                        'discount' => $this->strToFloat($value['discount']),
                         'currency' => $currency,
                         'payment_status' => $paymentStatus,
                         'referer' => $value['referer'],
