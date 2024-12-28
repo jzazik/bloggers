@@ -434,8 +434,14 @@ class UpdateFromGoogleSpreadsheet extends Command
                         $transactionData['product_id'] = $product->product_id;
                         
                         if (count($products) > 1) {
-                            $transactionData['subtotal'] = $value['promocode'] ? $product->product_price : null;
-                            $transactionData['discount'] = $discount / 2;
+                            if ($value['promocode']) {
+                                $transactionData['subtotal'] = $product->product_price;
+                                $transactionData['discount'] = $discount / 2;
+                            } else {
+                                $transactionData['subtotal'] = null;
+                                $transactionData['discount'] = null;
+                            }
+                            
                         }
                         
                         $this->transaction::create($transactionData);
