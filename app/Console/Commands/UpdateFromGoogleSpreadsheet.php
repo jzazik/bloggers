@@ -413,9 +413,9 @@ class UpdateFromGoogleSpreadsheet extends Command
                         'order_id' => $value['orderid'],
                         'payment_system' => $value['paymentsystem'],
                         'payment_id' => $value['paymentid'],
-                        'subtotal' => (int)$value['subtotal'],
+                        'subtotal' => $value['subtotal'],
                         'promocode' => $value['promocode'],
-                        'discount' => (int)$value['discount'],
+                        'discount' => $value['discount'],
                         'currency' => $currency,
                         'payment_status' => $paymentStatus,
                         'referer' => $value['referer'],
@@ -430,6 +430,11 @@ class UpdateFromGoogleSpreadsheet extends Command
                     foreach ($products as $product) {
                         $transactionData['price'] = count($products) > 1 ? ($product->product_price - (int)$value['discount'] / 2) : $amount;
                         $transactionData['product_id'] = $product->product_id;
+                        
+                        if (count($products) > 1) {
+                            $transactionData['subtotal'] = $product->product_price;
+                            $transactionData['discount'] = $value['discount'] / 2;
+                        }
                         
                         $this->transaction::create($transactionData);
                     }
