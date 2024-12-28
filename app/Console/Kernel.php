@@ -14,7 +14,7 @@ class Kernel extends ConsoleKernel
     {
 //         $schedule->command('app:update-from-google-spreadsheet popovich')->everyFiveMinutes()->withoutOverlapping();
 //         $schedule->command('app:update-from-google-spreadsheet kochfit')->everyFiveMinutes()->withoutOverlapping();
-         $schedule->command('app:update-from-google-spreadsheet kinezio')->everyFiveMinutes()->withoutOverlapping();
+//         $schedule->command('app:update-from-google-spreadsheet kinezio')->everyFiveMinutes()->withoutOverlapping();
     }
 
     /**
