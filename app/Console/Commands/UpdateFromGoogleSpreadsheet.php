@@ -639,6 +639,7 @@ class UpdateFromGoogleSpreadsheet extends Command
 
             } catch (\Exception $e) {
 
+                dd($e->getMessage());
                 Log::error($e->getMessage());
                 $this->errors++;
                 $this->error_details[] = ['строка в файле' => $key + 1, 'error' => $e->getMessage()];
