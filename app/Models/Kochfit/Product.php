@@ -23,7 +23,7 @@ class Product extends Model
                 'product_name' => 'Онлайн-курс Пакет 1 Активная беременность 5',
                 'product_type' => 'Активная беременность',
                 'product_length' => 5,
-                'product_price' => 8993,
+                'product_price' => 8393,
             ],
             [
                 'product_name' => 'Онлайн-курс Пакет 1 Восстановление после родов 3',
