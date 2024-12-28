@@ -366,9 +366,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                     ]);
                     
                     if ($this->isKinezio && mb_strpos(mb_strtolower($value['products']), 'консультация') !== false) return;
-//                    dd(!$email , !$value['price'] , (float)$value['price'] < 100 , mb_strpos(mb_strtolower($value['products']), 'доплата') !== false);
                     if (!$email || !$value['price'] || (float)$value['price'] < 100 || mb_strpos(mb_strtolower($value['products']), 'доплата') !== false) return;
-//                    dd(2);
                     if ($isDuplicate) return;
     
                     $customer = $this->customer::updateOrCreate(
@@ -428,8 +426,9 @@ class UpdateFromGoogleSpreadsheet extends Command
 
                     $products = $this->product->getProducts($data);
                     
+                    $amount = (int)$value['price'];
                     foreach ($products as $product) {
-                        $transactionData['price'] = $product->product_price;
+                        $transactionData['price'] = count($products) > 1 ? ($product->product_price - (int)$value['discount'] / 2) : $amount;
                         $transactionData['product_id'] = $product->product_id;
                         
                         $this->transaction::create($transactionData);
