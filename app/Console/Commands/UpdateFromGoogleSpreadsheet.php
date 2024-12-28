@@ -428,13 +428,13 @@ class UpdateFromGoogleSpreadsheet extends Command
 
                     $products = $this->product->getProducts($data);
                     
-                    $amount = (int)$value['price'];
+                    $amount = $this->strToFloat($value['price']);
                     foreach ($products as $product) {
                         $transactionData['price'] = count($products) > 1 ? ($product->product_price - $discount / 2) : $amount;
                         $transactionData['product_id'] = $product->product_id;
                         
                         if (count($products) > 1) {
-                            $transactionData['subtotal'] =  $product->product_price;
+                            $transactionData['subtotal'] = $value['promocode'] ? $product->product_price : null;
                             $transactionData['discount'] = $discount / 2;
                         }
                         
