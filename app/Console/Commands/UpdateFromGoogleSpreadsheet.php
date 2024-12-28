@@ -413,7 +413,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                         'order_id' => $value['orderid'],
                         'payment_system' => $value['paymentsystem'],
                         'payment_id' => $value['paymentid'],
-                        'subtotal' => $value['subtotal'],
+                        'subtotal' => $this->strToFloat($value['subtotal']),
                         'promocode' => $value['promocode'],
                         'discount' => $value['discount'],
                         'currency' => $currency,
@@ -432,7 +432,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                         $transactionData['product_id'] = $product->product_id;
                         
                         if (count($products) > 1) {
-                            $transactionData['subtotal'] = $product->product_price;
+                            $transactionData['subtotal'] =  $product->product_price;
                             $transactionData['discount'] = $value['discount'] / 2;
                         }
                         
