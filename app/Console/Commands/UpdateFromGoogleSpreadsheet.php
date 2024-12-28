@@ -393,6 +393,8 @@ class UpdateFromGoogleSpreadsheet extends Command
                     $saleNumber = self::getSaleNumber($value['products']);
                     
                     $productName = $this->getProductName($value['products']);
+                    
+                    $discount = $this->strToFloat($value['discount']);
     
                     $data = [
                         'product_name' => $productName,
@@ -415,7 +417,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                         'payment_id' => $value['paymentid'],
                         'subtotal' => $this->strToFloat($value['subtotal']),
                         'promocode' => $value['promocode'],
-                        'discount' => $this->strToFloat($value['discount']),
+                        'discount' => $discount,
                         'currency' => $currency,
                         'payment_status' => $paymentStatus,
                         'referer' => $value['referer'],
@@ -428,12 +430,12 @@ class UpdateFromGoogleSpreadsheet extends Command
                     
                     $amount = (int)$value['price'];
                     foreach ($products as $product) {
-                        $transactionData['price'] = count($products) > 1 ? ($product->product_price - (int)$value['discount'] / 2) : $amount;
+                        $transactionData['price'] = count($products) > 1 ? ($product->product_price - $discount / 2) : $amount;
                         $transactionData['product_id'] = $product->product_id;
                         
                         if (count($products) > 1) {
                             $transactionData['subtotal'] =  $product->product_price;
-                            $transactionData['discount'] = $value['discount'] / 2;
+                            $transactionData['discount'] = $discount / 2;
                         }
                         
                         $this->transaction::create($transactionData);
