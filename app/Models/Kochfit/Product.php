@@ -24,12 +24,14 @@ class Product extends Model
                 'product_type' => 'Активная беременность',
                 'product_length' => 5,
                 'product_price' => 8393,
+                'product_form' => 'Покупка пакета'
             ],
             [
                 'product_name' => 'Онлайн-курс Пакет 1 Восстановление после родов 3',
                 'product_type' => 'Восстановление после родов',
                 'product_length' => 3,
                 'product_price' => 6997,
+                'product_form' => 'Покупка пакета'
             ]
         ],
         'пакет 2' => [
@@ -38,12 +40,14 @@ class Product extends Model
                 'product_type' => 'Восстановление после родов',
                 'product_length' => 3,
                 'product_price' => 6993,
+                'product_form' => 'Покупка пакета'
             ],
             [
                 'product_name' => 'Онлайн-курс Пакет 2 МТД и дыхание 3',
                 'product_type' => 'МТД и дыхание',
                 'product_length' => 3,
                 'product_price' => 6997,
+                'product_form' => 'Покупка пакета'
             ]
         ],
         'пакет 3' => [
@@ -52,12 +56,14 @@ class Product extends Model
                 'product_type' => 'МТД и дыхание',
                 'product_length' => 3,
                 'product_price' => 7000,
+                'product_form' => 'Покупка пакета'
             ],
             [
                 'product_name' => 'Онлайн-курс Пакет 3 Красота и здоровье Стандарт 3',
                 'product_type' => 'Красота и здоровье Стандарт',
                 'product_length' => 3,
                 'product_price' => 5790,
+                'product_form' => 'Покупка пакета'
             ]
         ]
     ];
