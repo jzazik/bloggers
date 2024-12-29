@@ -71,8 +71,8 @@ class Product extends Model
         unset($data['product_name']);
         
         return [
+            $data,
             $create,
-            $data
         ];
     }
     
