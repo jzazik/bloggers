@@ -610,7 +610,7 @@ class UpdateFromGoogleSpreadsheet extends Command
 
                 $email = $this->getEmail($value['email']);
 
-                $customer = $this->customer::updateOrCreate(
+                $customer = $this->customer::firstOrCreate(
                     [
                         'email' => $email
                     ],
