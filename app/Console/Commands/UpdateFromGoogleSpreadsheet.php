@@ -494,7 +494,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                 
                 if (!$table) continue;
                 
-                $sum = abs((int)str_replace(',', '.', $value['Summ']));
+                $sum = abs(self::strToFloat($value['Summ']));
 
                 if ( !$value['Summ'] || $sum < 100) continue;
                 
@@ -505,24 +505,6 @@ class UpdateFromGoogleSpreadsheet extends Command
                 ]);
 
                 $action_date = $value['Confirm date/time'] ? Carbon::parse($value['Confirm date/time'])->toDateTimeString() : null;
-                
-                if (($table === 'subscriptions' &&
-                    DB::connection($this->blogger)
-                        ->table($table)
-                        ->where('customer_id', $customer->customer_id)
-                        ->where('subscription_date', $action_date)
-                        ->where('subscription_amount', $sum)
-                        ->exists())
-                    || ($table === 'refunds' &&
-                        DB::connection($this->blogger)
-                            ->table($table)
-                            ->where('customer_id', $customer->customer_id)
-                            ->where('refund_date', $action_date)
-                            ->where('refund_amount', $sum)
-                            ->exists())
-                ) {
-                    continue;
-                }
                 
                 $data = [
                     'product_type' => $this->getProductType($value['Purpose']),
@@ -536,12 +518,32 @@ class UpdateFromGoogleSpreadsheet extends Command
                 $products = $this->product->getProducts($data);
 
                 foreach ($products as $product) {
+                    $sum = count($products) > 1 ? $product->product_price : $sum;
+                    
                     if ($table === 'subscriptions' && $this->transaction
                             ->where('customer_id', $customer->customer_id)
                             ->where('product_id', $product->product_id)
                             ->whereBetween('transaction_date', [Carbon::parse($action_date)->subHour()->toDateTimeString(), Carbon::parse($action_date)->addHour()->toDateTimeString()])
                             ->where('price', $sum)
                             ->exists()
+                    ) {
+                        continue;
+                    }
+
+                    if (($table === 'subscriptions' &&
+                            DB::connection($this->blogger)
+                                ->table($table)
+                                ->where('customer_id', $customer->customer_id)
+                                ->where('subscription_date', $action_date)
+                                ->where('subscription_amount', $sum)
+                                ->exists())
+                        || ($table === 'refunds' &&
+                            DB::connection($this->blogger)
+                                ->table($table)
+                                ->where('customer_id', $customer->customer_id)
+                                ->where('refund_date', $action_date)
+                                ->where('refund_amount', $sum)
+                                ->exists())
                     ) {
                         continue;
                     }
