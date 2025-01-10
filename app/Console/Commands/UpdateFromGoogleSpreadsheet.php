@@ -609,9 +609,15 @@ class UpdateFromGoogleSpreadsheet extends Command
             try {
 
                 $email = $this->getEmail($value['email']);
-                $customer = $this->customer->firstOrCreate([
-                    'email' => $email
-                ]);
+
+                $customer = $this->customer::updateOrCreate(
+                    [
+                        'email' => $email
+                    ],
+                    [
+                        'customer_name' => $value['name'] ?? null,
+                        'phone' => $value['phone'] ? self::processPhone($value['phone']) : null,
+                    ]);
 
                 $amount = self::strToFloat(($value[$type . '_amount']));
                 $dateTime = $value[$type . '_date'] ? Carbon::parse($value[$type . '_date'])->toDateTimeString() : null;
