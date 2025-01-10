@@ -613,14 +613,8 @@ class UpdateFromGoogleSpreadsheet extends Command
                     'email' => $email
                 ]);
 
-                $amount = (int)($value[$type . '_amount']);
+                $amount = self::strToFloat(($value[$type . '_amount']));
                 $dateTime = $value[$type . '_date'] ? Carbon::parse($value[$type . '_date'])->toDateTimeString() : null;
-
-                if ($this->$type
-                    ->where('customer_id', $customer->customer_id)
-                    ->where($type . '_date', $dateTime)
-                    ->where($type . '_amount', $amount)
-                    ->exists()) continue;
 
                 $data = [
                     'product_type' => $this->getProductType($value['product']),
@@ -634,6 +628,16 @@ class UpdateFromGoogleSpreadsheet extends Command
                 $products = $this->product->getProducts($data);
 
                 foreach ($products as $product) {
+
+                    $amount = count($products) > 1 ? $product->product_price : $amount;
+                    
+                    if ($this->$type
+                        ->where('customer_id', $customer->customer_id)
+                        ->where($type . '_date', $dateTime)
+                        ->where($type . '_amount', $amount)
+                        ->exists()) continue;
+                    
+                    
                     $data = [
                         'customer_id' => $customer->customer_id,
                         $type . '_date' => $dateTime,
