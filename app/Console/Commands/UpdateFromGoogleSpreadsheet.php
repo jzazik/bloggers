@@ -616,7 +616,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                     ],
                     [
                         'customer_name' => $value['name'] ?? null,
-                        'phone' => $value['phone'] ? self::processPhone($value['phone']) : null,
+                        'phone' => isset($value['phone']) ? self::processPhone($value['phone']) : null,
                     ]);
 
                 $amount = self::strToFloat(($value[$type . '_amount']));
