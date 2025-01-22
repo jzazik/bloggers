@@ -211,6 +211,16 @@ class UpdateFromGoogleSpreadsheet extends Command
     
     private function getProductMeasure($products): string
     {
+        
+        if ($this->isPopovich) {
+            if (mb_strpos(mb_strtolower($products), 'введение') !== false) {
+                return 'day';
+            }
+            
+            return 'week';
+
+        }
+        
         if (mb_strpos(mb_strtolower($products), 'тестовая неделя') !== false) {
             return 'day';
         }
@@ -262,6 +272,28 @@ class UpdateFromGoogleSpreadsheet extends Command
 
             return '1';
 
+        }
+        
+        if ($this->isPopovich) {
+            if (mb_strpos(mb_strtolower($products), '1') !== false) {
+                return '5';
+            }
+            if (mb_strpos(mb_strtolower($products), '3') !== false) {
+                return '15';
+            }
+
+            if (mb_strpos(mb_strtolower($products), '6') !== false) {
+                return '30';
+            }
+
+            if (mb_strpos(mb_strtolower($products), '12') !== false) {
+                return '60';
+            }
+
+            if (mb_strpos(mb_strtolower($products), 'введение') !== false) {
+                return '14';
+            }
+            
         }
         
         if (mb_strpos(mb_strtolower($products), '12') !== false) {
@@ -403,9 +435,12 @@ class UpdateFromGoogleSpreadsheet extends Command
                         'product_price' => trim(explode('=', $value['products'])[1]),
                     ];
                     
+                    if ($this->isKochfit || $this->isPopovich) {
+                        $data['length_measure'] = self::getProductMeasure($value['products']);
+                    }
+                    
                     if ($this->isKochfit) {
                         $data['product_form'] =  self::getProductForm($value['products']);
-                        $data['length_measure'] = self::getProductMeasure($value['products']);
                     }
 
                     $transactionData = [
