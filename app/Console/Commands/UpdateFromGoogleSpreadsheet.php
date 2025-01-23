@@ -260,8 +260,9 @@ class UpdateFromGoogleSpreadsheet extends Command
             if (mb_strpos(mb_strtolower($products), 'ведение тренировки') !== false ||
                 mb_strpos(mb_strtolower($products), 'персональная работа') !== false ||
                 mb_strpos(mb_strtolower($products), 'питание') !== false ||
-                mb_strpos(mb_strtolower($products), 'тренировки skype') !== false ||
+                mb_strpos(mb_strtolower($products), 'skype') !== false ||
                 mb_strpos(mb_strtolower($products), 'фитнес тур') !== false ||
+                mb_strpos(mb_strtolower($products), 'семинар') !== false ||
                 mb_strpos(mb_strtolower($products), 'диагностика') !== false) {
                 return '0';
             }
@@ -275,6 +276,10 @@ class UpdateFromGoogleSpreadsheet extends Command
         }
         
         if ($this->isPopovich) {
+            if (mb_strpos(mb_strtolower($products), '12') !== false) {
+                return '60';
+            } 
+            
             if (mb_strpos(mb_strtolower($products), '1') !== false) {
                 return '5';
             }
@@ -286,12 +291,16 @@ class UpdateFromGoogleSpreadsheet extends Command
                 return '30';
             }
 
-            if (mb_strpos(mb_strtolower($products), '12') !== false) {
-                return '60';
-            }
-
             if (mb_strpos(mb_strtolower($products), 'введение') !== false) {
                 return '14';
+            }
+            
+            if (mb_strpos(mb_strtolower($products), 'годовой') !== false) {
+                return '60';
+            }
+             
+            if (mb_strpos(mb_strtolower($products), 'архив силовой') !== false) {
+                return '5';
             }
             
         }
