@@ -21,7 +21,7 @@ class Product extends Model
     {
         $products = [];
         
-        if (mb_strpos(mb_strtolower($data['product_name']), 'фундамент') !== false && mb_strpos(mb_strtolower($data['product_name']), 'анатомия') !== false) {
+        if (mb_strpos(mb_strtolower($data['product_name']), 'тренировки') !== false && mb_strpos(mb_strtolower($data['product_name']), 'анатомия') !== false) {
             $data['product_name'] = 'Онлайн-курс Анатомия движения';
             $data['product_price'] = 7000;
         }
