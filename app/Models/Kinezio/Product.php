@@ -20,6 +20,11 @@ class Product extends Model
     public function getProducts($data)
     {
         $products = [];
+        
+        if (mb_strpos(mb_strtolower($data['product_name']), 'фундамент') !== false && mb_strpos(mb_strtolower($data['product_name']), 'анатомия') !== false) {
+            $data['product_name'] = 'Онлайн-курс Анатомия движения';
+            $data['product_price'] = 7000;
+        }
 
         $products[] = self::firstOrCreate($data);
 

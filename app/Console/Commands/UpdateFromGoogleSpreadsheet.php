@@ -114,6 +114,10 @@ class UpdateFromGoogleSpreadsheet extends Command
                 return 'Фундамент Базовый';
             }
             
+            if (mb_strpos(mb_strtolower($products), 'фундамент') !== false && mb_strpos(mb_strtolower($products), '2.0') !== false) {
+                return 'Фундамент 2.0';
+            }
+            
             if (mb_strpos(mb_strtolower($products), 'анатомия') !== false) {
                 return 'Анатомия'; 
             }
@@ -122,13 +126,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                 return 'Пробный';
             }
             
-            if (mb_strpos(mb_strtolower($products), 'тренировки') !== false) {
-                return 'Тренировки';
-            }
-
-            if (mb_strpos(mb_strtolower($products), 'все пробные курсы') !== false) {
-                return 'Все пробные курсы';
-            }
+            return 'Другое';
         } else if ($this->isKochfit) {
 
             if (mb_strpos(mb_strtolower($products), 'лайт') !== false || mb_strpos(mb_strtolower($products), 'тандарт') !== false) {
@@ -442,11 +440,8 @@ class UpdateFromGoogleSpreadsheet extends Command
                         'product_type' => self::getProductType($value['products']),
                         'product_length' => self::getProductLength($productName),
                         'product_price' => trim(explode('=', $value['products'])[1]),
+                        'length_measure' => self::getProductMeasure($value['products'])
                     ];
-                    
-                    if ($this->isKochfit || $this->isPopovich) {
-                        $data['length_measure'] = self::getProductMeasure($value['products']);
-                    }
                     
                     if ($this->isKochfit) {
                         $data['product_form'] =  self::getProductForm($value['products']);
@@ -471,9 +466,12 @@ class UpdateFromGoogleSpreadsheet extends Command
                     ];
 
                     $products = $this->product->getProducts($data);
-                    
                     $amount = $this->strToFloat($value['price']);
                     foreach ($products as $product) {
+                        if ($product->product_name === 'Онлайн-курс Анатомия движения') {
+                            $amount = 7000;
+                        }
+                        
                         $transactionData['price'] = count($products) > 1 ? ($product->product_price - $discount / 2) : $amount;
                         $transactionData['product_id'] = $product->product_id;
                         
