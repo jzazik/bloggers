@@ -935,7 +935,7 @@ class UpdateFromGoogleSpreadsheet extends Command
         $this->updateMarketing();
         $this->updateFollowers();
         if ($this->isKochfit) {
-//            $this->updateSubscriptions();
+            $this->updateSubscriptions();
             $this->updateInstallments();
             $this->updatePaypal();
             $this->updateTocard();
