@@ -567,7 +567,6 @@ class UpdateFromGoogleSpreadsheet extends Command
                     'product_form' => $this->getProductForm($value['Purpose']),
                     'product_length' => $this->getProductLength($value['Purpose']),
                     'length_measure' => $this->getProductMeasure($value['Purpose']),
-                    'product_price' => $sum,
                     'product_name' => $value['Purpose'],
                 ];
 
@@ -579,7 +578,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                     if ($table === 'subscriptions' && $this->transaction
                             ->where('customer_id', $customer->customer_id)
                             ->where('product_id', $product->product_id)
-                            ->whereBetween('transaction_date', [Carbon::parse($action_date)->subHour()->toDateTimeString(), Carbon::parse($action_date)->addHour()->toDateTimeString()])
+                            ->whereBetween('transaction_date', [Carbon::parse($action_date)->subMinutes(30)->toDateTimeString(), Carbon::parse($action_date)->addMinutes(30)->toDateTimeString()])
                             ->where('price', $sum)
                             ->exists()
                     ) {

@@ -72,10 +72,11 @@ class Product extends Model
     {
         $create = [
             'product_name' => $data['product_name'],
+            'product_form' => $data['product_form'],
         ];
-        
-        unset($data['product_name']);
-        
+
+        unset($data['product_name'], $data['product_form']);
+
         return [
             $data,
             $create,
