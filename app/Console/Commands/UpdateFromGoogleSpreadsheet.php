@@ -14,6 +14,7 @@ class UpdateFromGoogleSpreadsheet extends Command
 {
 
     private $errors = 0;
+    private $dublicates = 0;
     private $error_details = [];
     private Model $updateLog;
     private Model $customer;
@@ -477,7 +478,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                         
                         $action_date = $transactionData['transaction_date'];
                         
-                        if ($this->isKochfit && $this->subscription
+                        if ($this->isKochfit && $dublicate = $this->subscription
                                 ->leftJoin('products', 'subscriptions.product_id', 'products.product_id')
                                 ->where('products.product_type', $product->product_type)
                                 ->where('products.product_length', $product->product_length)
@@ -485,8 +486,21 @@ class UpdateFromGoogleSpreadsheet extends Command
                                 ->where('customer_id', $customer->customer_id)
                                 ->whereBetween('subscription_date', [Carbon::parse($action_date)->subHour()->toDateTimeString(), Carbon::parse($action_date)->addHour()->toDateTimeString()])
                                 ->where('subscription_amount', $transactionData['price'])
-                                ->exists()
+                                ->first()
                         ) {
+                            $this->dublicates++;
+
+                            Log::info('Subscription already exists', [
+                                'subscription_id' => $dublicate->id,
+                                'product_type' => $product->product_type,
+                                'product_length' => $product->product_length,
+                                'length_measure' => $product->length_measure,
+                                'price' => $transactionData['price'],
+                                'action_date' => $action_date,
+                                'customer_id' => $customer->customer_id,
+                                'строка в файле crm' => $key + 1
+                            ]);
+                            
                             continue;
                         }
                         
@@ -571,6 +585,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                     'product_length' => $this->getProductLength($value['Purpose']),
                     'length_measure' => $this->getProductMeasure($value['Purpose']),
                     'product_name' => $value['Purpose'],
+                    'product_price' => $sum
                 ];
 
                 $products = $this->product->getProducts($data);
@@ -578,7 +593,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                 foreach ($products as $product) {
                     $sum = count($products) > 1 ? $product->product_price : $sum;
                     
-                    if ($table === 'subscriptions' && $this->transaction
+                    if ($table === 'subscriptions' && $dublicate = $this->transaction
                             ->leftJoin('products', 'transactions.product_id', 'products.product_id')
                             ->where('products.product_type', $product->product_type)
                             ->where('products.product_length', $product->product_length)
@@ -586,8 +601,21 @@ class UpdateFromGoogleSpreadsheet extends Command
                             ->where('customer_id', $customer->customer_id)
                             ->whereBetween('transaction_date', [Carbon::parse($action_date)->subHour()->toDateTimeString(), Carbon::parse($action_date)->addHour()->toDateTimeString()])
                             ->where('price', $sum)
-                            ->exists()
+                            ->first()
                     ) {
+                        
+                        $this->dublicates++;
+                        
+                        Log::info('Transaction already exists', [
+                            'transaction_id' => $dublicate->transaction_id,
+                            'product_type' => $product->product_type,
+                            'product_length' => $product->product_length,
+                            'length_measure' => $product->length_measure,
+                            'price' => $sum,
+                            'action_date' => $action_date,
+                            'customer_id' => $customer->customer_id,
+                            'строка в файле подписки' => $key + 1
+                        ]);
                         continue;
                     }
 
@@ -972,6 +1000,7 @@ class UpdateFromGoogleSpreadsheet extends Command
         ];
         
         if ($this->isKochfit) {
+            $data['duplicates'] = $this->dublicates;
             $data['subscriptions_new_rows'] = $subscriptionsCountNew - $subscriptionsCount;
             $data['installments_new_rows'] = $installmentsCountNew - $installmentsCount;
             $data['refunds_new_rows'] = $refundsCountNew - $refundsCount;
