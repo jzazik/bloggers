@@ -511,7 +511,7 @@ class UpdateFromGoogleSpreadsheet extends Command
             } catch (\Exception $e) {
                 Log::error($e->getMessage());
                 $this->errors++;
-                $this->error_details[] = ['строка в файле' => $key + 1, 'error' => $e->getMessage(), 'track' => $e->getTraceAsString()];
+                $this->error_details[] = ['строка в файле crm' => $key + 1, 'error' => $e->getMessage(), 'track' => $e->getTraceAsString()];
             }
             
             
@@ -638,7 +638,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                 
                 Log::error($e->getMessage());
                 $this->errors++;
-                $this->error_details[] = ['строка в файле' => $key + 1, 'error' => $e->getMessage()];
+                $this->error_details[] = ['строка в файле подписки' => $key + 1, 'error' => $e->getMessage()];
             }
             
             
@@ -723,7 +723,7 @@ class UpdateFromGoogleSpreadsheet extends Command
 //                dd($e->getMessage());
                 Log::error($e->getMessage());
                 $this->errors++;
-                $this->error_details[] = ['строка в файле' => $key + 1, 'error' => $e->getMessage()];
+                $this->error_details[] = ['строка в файле payments' => $key + 1, 'error' => $e->getMessage()];
             }
 
 
