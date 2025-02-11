@@ -478,8 +478,11 @@ class UpdateFromGoogleSpreadsheet extends Command
                         $action_date = $transactionData['transaction_date'];
                         
                         if ($this->isKochfit && $this->subscription
+                                ->leftJoin('products', 'subscriptions.product_id', 'products.product_id')
+                                ->where('products.product_type', $product->product_type)
+                                ->where('products.product_length', $product->product_length)
+                                ->where('products.length_measure', $product->length_measure)
                                 ->where('customer_id', $customer->customer_id)
-                                ->where('product_id', $product->product_id)
                                 ->whereBetween('subscription_date', [Carbon::parse($action_date)->subHour()->toDateTimeString(), Carbon::parse($action_date)->addHour()->toDateTimeString()])
                                 ->where('subscription_amount', $transactionData['price'])
                                 ->exists()
@@ -576,9 +579,12 @@ class UpdateFromGoogleSpreadsheet extends Command
                     $sum = count($products) > 1 ? $product->product_price : $sum;
                     
                     if ($table === 'subscriptions' && $this->transaction
+                            ->leftJoin('products', 'transactions.product_id', 'products.product_id')
+                            ->where('products.product_type', $product->product_type)
+                            ->where('products.product_length', $product->product_length)
+                            ->where('products.length_measure', $product->length_measure)
                             ->where('customer_id', $customer->customer_id)
-                            ->where('product_id', $product->product_id)
-                            ->whereBetween('transaction_date', [Carbon::parse($action_date)->subMinutes(30)->toDateTimeString(), Carbon::parse($action_date)->addMinutes(30)->toDateTimeString()])
+                            ->whereBetween('transaction_date', [Carbon::parse($action_date)->subHour()->toDateTimeString(), Carbon::parse($action_date)->addHour()->toDateTimeString()])
                             ->where('price', $sum)
                             ->exists()
                     ) {
@@ -929,7 +935,7 @@ class UpdateFromGoogleSpreadsheet extends Command
         $this->updateMarketing();
         $this->updateFollowers();
         if ($this->isKochfit) {
-            $this->updateSubscriptions();
+//            $this->updateSubscriptions();
             $this->updateInstallments();
             $this->updatePaypal();
             $this->updateTocard();
