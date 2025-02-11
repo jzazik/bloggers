@@ -471,9 +471,23 @@ class UpdateFromGoogleSpreadsheet extends Command
                         if ($product->product_name === 'Онлайн-курс Анатомия движения') {
                             $amount = 7000;
                         }
-                        
+
                         $transactionData['price'] = count($products) > 1 ? ($product->product_price - $discount / 2) : $amount;
                         $transactionData['product_id'] = $product->product_id;
+                        
+                        $action_date = $transactionData['transaction_date'];
+                        
+                        if ($this->isKochfit && $this->subscription
+                                ->where('customer_id', $customer->customer_id)
+                                ->where('product_id', $product->product_id)
+                                ->whereBetween('subscription_date', [Carbon::parse($action_date)->subHour()->toDateTimeString(), Carbon::parse($action_date)->addHour()->toDateTimeString()])
+                                ->where('subscription_amount', $transactionData['price'])
+                                ->exists()
+                        ) {
+                            continue;
+                        }
+                        
+                        
                         
                         if (count($products) > 1) {
                             if ($value['promocode']) {
