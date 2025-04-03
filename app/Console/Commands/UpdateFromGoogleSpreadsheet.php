@@ -409,8 +409,9 @@ class UpdateFromGoogleSpreadsheet extends Command
                         'ma_email' => $value['ma_email'],
                     ]);
                     
+                    if (mb_stripos($value['Name'], 'test') !== false || mb_stripos($value['Name'], 'тест') !== false) return;
                     if ($this->isKinezio && mb_strpos(mb_strtolower($value['products']), 'консультация') !== false) return;
-                    if (!$email || !$value['price'] || (float)$value['price'] < 100 || mb_strpos(mb_strtolower($value['products']), 'доплата') !== false) return;
+                    if (!$email || !$value['price'] || (float)$value['price'] <= 100 || mb_strpos(mb_strtolower($value['products']), 'доплата') !== false) return;
                     if ($isDuplicate) return;
     
                     $customer = $this->customer::updateOrCreate(
