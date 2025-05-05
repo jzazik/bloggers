@@ -105,25 +105,29 @@ class UpdateFromGoogleSpreadsheet extends Command
     {
     
         if ($this->isKinezio) {
-            if (mb_strpos(mb_strtolower($products), 'фундамент') !== false
-                && (mb_strpos(mb_strtolower($products), 'с обратной связью') !== false || mb_strpos(mb_strtolower($products), 'премиум') !== false)) {
+            if (mb_stripos($products, 'фундамент') !== false
+                && (mb_stripos($products, 'с обратной связью') !== false || mb_stripos($products, 'премиум') !== false)) {
                 return 'Фундамент Премиум';
             }
             
-            if (mb_strpos(mb_strtolower($products), 'фундамент') !== false
-                && (mb_strpos(mb_strtolower($products), 'без обратной связи') !== false || mb_strpos(mb_strtolower($products), 'базовый') !== false)) {
+            if (mb_stripos($products, 'фундамент') !== false
+                && (mb_stripos($products, 'без обратной связи') !== false || mb_stripos($products, 'базовый') !== false)) {
                 return 'Фундамент Базовый';
             }
             
-            if (mb_strpos(mb_strtolower($products), 'фундамент') !== false && mb_strpos(mb_strtolower($products), '2.0') !== false) {
+            if (mb_stripos($products, 'фундамент') !== false && mb_strpos(mb_strtolower($products), '2.0') !== false) {
                 return 'Фундамент 2.0';
             }
             
-            if (mb_strpos(mb_strtolower($products), 'анатомия') !== false) {
+            if (mb_stripos($products, 'анатомия') !== false) {
                 return 'Анатомия'; 
             }
             
-            if (mb_strpos(mb_strtolower($products), 'пробный') !== false) {
+            if (mb_stripos($products, 'дыхание') !== false) {
+                return 'Дыхание'; 
+            }
+            
+            if (mb_stripos($products, 'пробный') !== false) {
                 return 'Пробный';
             }
             
@@ -235,16 +239,16 @@ class UpdateFromGoogleSpreadsheet extends Command
     private function getProductLength($products): string
     {
         if ($this->isKinezio) {
-            if (mb_strpos(mb_strtolower($products), 'фундамент') !== false) {
+            if (mb_stripos($products, 'фундамент') !== false && mb_stripos($products, 'модуль') !== false) {
+                return '2';
+            }
+            
+            if (mb_stripos($products, 'фундамент') !== false) {
                 return '6';
             }
 
-            if (mb_strpos(mb_strtolower($products), 'анатомия') !== false) {
+            if (mb_stripos($products, 'анатомия') !== false || mb_stripos($products, 'дыхание') !== false) {
                 return '1';
-            }
-            
-            if (mb_strpos(mb_strtolower($products), 'пробный') !== false) {
-                return '0';
             }
             
             return '0';
@@ -410,8 +414,8 @@ class UpdateFromGoogleSpreadsheet extends Command
                     ]);
                     
                     if (mb_stripos($value['Name'], 'test') !== false || mb_stripos($value['Name'], 'тест') !== false) return;
-                    if ($this->isKinezio && mb_strpos(mb_strtolower($value['products']), 'консультация') !== false) return;
-                    if (!$email || !$value['price'] || (float)$value['price'] <= 100 || mb_strpos(mb_strtolower($value['products']), 'доплата') !== false) return;
+                    if ($this->isKinezio && self::getProductType($value['products']) === 'Другое') return;
+                    if (!$email || !$value['price'] || (float)$value['price'] <= 100 || mb_stripos($value['products'], 'доплата') !== false) return;
                     if ($isDuplicate) return;
     
                     $customer = $this->customer::updateOrCreate(
