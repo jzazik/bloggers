@@ -116,7 +116,7 @@ class UpdateFromGoogleSpreadsheet extends Command
             }
             
             if (mb_stripos($products, 'фундамент') !== false && mb_strpos(mb_strtolower($products), '2.0') !== false) {
-                return 'Фундамент 2.0';
+                return 'ФД 2.0';
             }
             
             if (mb_stripos($products, 'анатомия') !== false) {
