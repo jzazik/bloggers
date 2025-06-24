@@ -902,6 +902,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                 'inst_er' => $value['inst_er'] === '' ? null : $this->strToFloat($value['inst_er']),
                 'vk' => $value['vk'] === '' ? null : $this->strToInt($value['vk']),
                 'dzen' => $value['dzen'] === '' ? null : $this->strToInt($value['dzen']),
+                'youtube' => $value['youtube'] === '' ? null : $this->strToInt($value['youtube']),
                 'app' => $value['app'] === '' ? null : $this->strToInt($value['app']),
                 'advert_tg_bot' => $value['advert_tg_bot'] === '' ? null : $this->strToInt($value['advert_tg_bot']),
                 ...($this->isPopovich ? ['yandex_music' => $value['yandex_music'] === '' ? null : $this->strToInt($value['yandex_music'])] : [])
