@@ -461,7 +461,6 @@ class UpdateFromGoogleSpreadsheet extends Command
                         'form_id' => $value['formid'],
                         'sale_number' => $saleNumber,
                         'form_name' => $formName,
-                        'order_id' => $value['orderid'],
                         'payment_system' => $value['paymentsystem'],
                         'payment_id' => $value['paymentid'],
                         'subtotal' => $this->strToFloat($value['subtotal']),
