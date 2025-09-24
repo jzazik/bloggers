@@ -101,13 +101,18 @@ class UpdateFromGoogleSpreadsheet extends Command
     }
     
     
-    private function getProductType($products): string
+    private function getProductType($products, $saleNumber = null): string
     {
     
         if ($this->isKinezio) {
             if (mb_stripos($products, 'фундамент') !== false
-                && (mb_stripos($products, 'с обратной связью') !== false || mb_stripos($products, 'премиум') !== false)) {
+                && ((mb_stripos($products, 'с обратной связью') !== false && $saleNumber < 10) || mb_stripos($products, 'премиум') !== false)) {
                 return 'Фундамент Премиум';
+            }
+
+            if (mb_stripos($products, 'фундамент') !== false
+                && ((mb_stripos($products, 'с обратной связью') !== false && $saleNumber >= 10) || mb_stripos($products, 'стандарт') !== false)) {
+                return 'Фундамент Стандарт';
             }
             
             if (mb_stripos($products, 'фундамент') !== false
@@ -447,7 +452,7 @@ class UpdateFromGoogleSpreadsheet extends Command
     
                     $data = [
                         'product_name' => $productName,
-                        'product_type' => self::getProductType($value['products']),
+                        'product_type' => self::getProductType($value['products'], $saleNumber),
                         'product_length' => self::getProductLength($productName),
                         'product_price' => trim(explode('=', $value['products'])[1]),
                         'length_measure' => self::getProductMeasure($value['products'])
