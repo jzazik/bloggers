@@ -136,6 +136,10 @@ class UpdateFromGoogleSpreadsheet extends Command
                 return 'Пробный';
             }
             
+            if (mb_stripos($products, 'мышечн') !== false) {
+                return 'Мышечное тестирование';
+            }
+            
             return 'Другое';
         } else if ($this->isKochfit) {
 
@@ -252,7 +256,7 @@ class UpdateFromGoogleSpreadsheet extends Command
                 return '6';
             }
 
-            if (mb_stripos($products, 'анатомия') !== false || mb_stripos($products, 'дыхание') !== false) {
+            if (mb_stripos($products, 'анатомия') !== false || mb_stripos($products, 'дыхание') !== false || mb_stripos($products, 'мышечн') !== false) {
                 return '1';
             }
             
