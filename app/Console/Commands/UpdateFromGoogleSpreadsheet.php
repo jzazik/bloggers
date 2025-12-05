@@ -105,6 +105,10 @@ class UpdateFromGoogleSpreadsheet extends Command
     {
     
         if ($this->isKinezio) {
+            if (mb_stripos($products, 'продолжающий') !== false) {
+                return 'Пакет Продолжающий';
+            }
+
             if (mb_stripos($products, 'фундамент') !== false
                 && ((mb_stripos($products, 'с обратной связью') !== false && $saleNumber < 10) || mb_stripos($products, 'премиум') !== false)) {
                 return 'Фундамент Премиум';
