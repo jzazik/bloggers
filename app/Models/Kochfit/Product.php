@@ -88,6 +88,11 @@ class Product extends Model
         unset($data['sale_number']);
 
         $products = [];
+
+        $products[] = self::firstOrCreate($data);
+
+        return $products;
+        
         $packageProducts = null;
         
         if (mb_strpos(mb_strtolower($data['product_name']), 'пакет 1') !== false) {
