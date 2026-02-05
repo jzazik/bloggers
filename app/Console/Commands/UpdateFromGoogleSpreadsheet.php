@@ -147,6 +147,14 @@ class UpdateFromGoogleSpreadsheet extends Command
             return 'Другое';
         } else if ($this->isKochfit) {
 
+            if (mb_strpos(mb_strtolower($products), 'пакет') !== false) {
+                return 'Пакет';
+            }
+            
+            if (mb_strpos(mb_strtolower($products), 'персон') !== false) {
+                return 'Персональные';
+            }
+            
             if (mb_strpos(mb_strtolower($products), 'лайт') !== false || mb_strpos(mb_strtolower($products), 'тандарт') !== false) {
                 return 'Красота и здоровье Стандарт';
             }
